@@ -1,0 +1,9 @@
+.green {
+    background-color: rgb(195, 236, 223);
+    padding: 3px;
+    text-align: right;
+}
+
+input {
+    text-align: right;
+}
