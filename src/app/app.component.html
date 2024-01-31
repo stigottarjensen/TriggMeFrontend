@@ -13,9 +13,10 @@
   <tr><td>Triggme avgift beløp</td><td class="green">{{triggmebody.triggme_avgift}}</td></tr>
   <tr><td>Humanitært beløp</td><td class="green">{{triggmebody.humaniter_andel}}</td></tr>
 </table>
+<button (click)="getBuckets()">Lag bøtter</button>
 <img *ngIf="showImage" src=""{{qrCode}}/>
 <table>
-  <tr *ngFor="let bucket of buckets">
-    <td>{{bucket}}</td>
+  <tr *ngFor="let bucket of bucketInput">
+    <td *ngFor="let item of bucket | keyvalue">{{item.key}}: {{item.value}}</td>
   </tr>
 </table>
