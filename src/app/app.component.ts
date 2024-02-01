@@ -26,42 +26,90 @@ export class AppComponent implements OnInit {
   };
 
   last_purchase = {
-    lastPurchase: 0.0,
+    lastPurchase: 300.0,
   };
 
-  bucketInput: any = {};
-  bucketKeys: [] = [];
+  maxAmount: number = 0;
+
+  bucketInput: any[] = [];
+  buyBucket: any = {};
+  httpHeaders = new HttpHeaders({
+    'Content-Type': 'application/json',
+  });
+  httpOptions = {
+    headers: this.httpHeaders,
+    responseType: 'json',
+    observe: 'body',
+    withCredentials: true,
+  };
 
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
     this.getBuckets();
   }
+  teller:number=0;
 
-  buySomething(): void {
-    
+  simulatePurchase(count: number): void {
+    this.teller=0;
+    for (let i = 0; i < count; i++) {
+      setTimeout(() => {
+        const r = Math.random() * Math.random();
+        const p = Math.floor(this.maxAmount * r);
+        this.buySomething(p);
+      }, 200 * i);
+    }
+  }
+
+  buySomething(p?: number): void {
+    let lp = this.last_purchase;
+    if (p) {
+      lp = {
+        lastPurchase: p,
+      };
+    }
+    this.last_purchase = lp;
+    this.http
+      .post('http://localhost:8778/triggme/demo/buy', lp, {
+        headers: this.httpHeaders,
+        responseType: 'json',
+        observe: 'body',
+        withCredentials: false,
+      })
+      .subscribe((result: any) => {
+        this.teller++;
+        this.buyBucket = result;
+        this.bucketInput.forEach((bucket: any) => {
+          const arr = Object.keys(bucket);
+          arr.forEach((item: any) => {
+            bucket[item + 'Hot'] = false;
+          });
+          if (result.bucketId === bucket.bucketId) {
+            const a = Object.keys(result);
+            let dummy = 0;
+            bucket.buyCount++;
+            a.forEach((item: any) => {
+              bucket[item + 'Hot'] = Math.abs(bucket[item] - result[item]) > 0.01;
+              bucket[item] = result[item];
+            });
+          }
+        });
+      });
   }
 
   getBuckets(): void {
-    let httpHeaders = new HttpHeaders({
-      'Content-Type': 'application/json',
-    });
-    const httpOptions = {
-      headers: httpHeaders,
-      responseType: 'json',
-      observe: 'body',
-      withCredentials: true,
-    };
     this.http
       .post('http://localhost:8778/triggme/demo/setup', this.triggmebody, {
-        headers: httpHeaders,
+        headers: this.httpHeaders,
         responseType: 'json',
         observe: 'body',
         withCredentials: false,
       })
       .subscribe((result: any) => {
         this.bucketInput = result['buckets'];
-        console.log(this.bucketInput);
+        this.bucketInput.forEach((bucket:any)=> bucket.buyCount=0)
+        this.maxAmount =
+          this.bucketInput[this.bucketInput.length - 1].purchaseLimitHigh;
       });
   }
 }

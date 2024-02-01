@@ -13,3 +13,30 @@ td {
     border-width: 1px;
     border-color: aqua;
 }
+span {
+    margin-left: 20px;
+}
+
+.normal {
+    background-color: white;
+    transition-duration: 2s;
+    transition-property: background-color;
+}
+
+.triggnormal {
+    background-color: white;
+    transition-duration: 20s;
+    transition-property: background-color;
+}
+
+.hot {
+    background-color: pink;
+    transition-duration: 300ms;
+    transition-property: background-color;
+}
+
+.trigg {
+    background-color: aquamarine;
+    transition-duration: 300ms;
+    transition-property: background-color;
+}
