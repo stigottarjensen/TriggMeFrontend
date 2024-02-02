@@ -8,13 +8,15 @@
   <tr><td>Triggme avgift % </td><td><input type="number" [(ngModel)]="triggmebody.humaniter_fee_prosent"></td></tr>
   <tr><td>Humanitær %</td><td><input type="number" [(ngModel)]="triggmebody.triggme_fee_prosent"></td></tr>
   <tr><td>Totalomsetning</td><td class="green">{{triggmebody.total_purchase}}</td></tr>
-  <tr><td>Kjøpsbeløp ved tilgodelapp</td><td class="green">{{triggmebody.trigg_purchase}}</td></tr>
-  <tr><td>Tilgodelapp beløp</td><td class="green">{{triggmebody.tilgodelapp}}</td></tr>
-  <tr><td>Triggme avgift beløp</td><td class="green">{{triggmebody.triggme_avgift}}</td></tr>
-  <tr><td>Humanitært beløp</td><td class="green">{{triggmebody.humaniter_andel}}</td></tr>
+  </table>
+  <table>
+  <tr><td>Kjøpsbeløp ved tilgodelapp</td><td class="green" *ngFor="let item of triggmebody.trigg_purchase"> {{item}} </td></tr>
+  <tr><td>Tilgodelapp beløp</td><td class="green" *ngFor="let item of triggmebody.tilgodelapp"> {{item}} </td></tr>
+  <tr><td>Triggme avgift beløp</td><td class="green" *ngFor="let item of triggmebody.triggme_avgift"> {{item}} </td></tr>
+  <tr><td>Humanitært beløp</td><td class="green" *ngFor="let item of triggmebody.humaniter_andel"> {{item}} </td></tr>
 </table>
 <p><button (click)="getBuckets()">Lag bøtter</button></p>
-<p><button (click)="simulatePurchase(750)">Simuler 750 kjøp</button><span>{{teller}}</span><span>{{last_purchase.lastPurchase}}</span></p>
+<p><button (click)="simulatePurchase()">Simuler </button><input type="number" [(ngModel)]="simulate_count" class="smal"> kjøp<span>{{teller}}</span><span>{{last_purchase.lastPurchase}}</span></p>
 <img *ngIf="showImage" src=""{{qrCode}}/>
 <table>
   <!-- <th *ngFor="let item of bucketInput[0] | keyvalue" >{{item.key}}</th> -->

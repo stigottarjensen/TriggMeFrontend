@@ -11,10 +11,14 @@ input {
 td {
     border-style: solid;
     border-width: 1px;
-    border-color: aqua;
+    border-color: gray;
 }
 span {
     margin-left: 20px;
+}
+
+.smal {
+    width: 60px;
 }
 
 .normal {
