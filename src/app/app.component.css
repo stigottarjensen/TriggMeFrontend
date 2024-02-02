@@ -6,13 +6,19 @@
 
 input {
     text-align: right;
-}   
+}
+
+img {
+    width: 100px;
+    height: 100px;
+}
 
 td {
     border-style: solid;
     border-width: 1px;
     border-color: gray;
 }
+
 span {
     margin-left: 20px;
 }

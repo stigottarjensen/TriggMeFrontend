@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { KeyValue } from '@angular/common';
+import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-root',
@@ -10,6 +11,7 @@ import { KeyValue } from '@angular/common';
 export class AppComponent implements OnInit {
   title = 'TriggMeFrontend';
   showImage = false;
+  showId = false;
   qrCode = '';
 
   triggmebody = {
@@ -23,7 +25,8 @@ export class AppComponent implements OnInit {
     trigg_purchase: [0],
     tilgodelapp: [0],
     triggme_avgift: [0],
-    humaniter_andel: [0]
+    humaniter_andel: [0],
+    qrcode: [{}],
   };
 
   last_purchase = {
@@ -34,7 +37,7 @@ export class AppComponent implements OnInit {
 
   bucketInput: any[] = [];
   buyBucket: any = {};
-  simulate_count =100;
+  simulate_count = 100;
   httpHeaders = new HttpHeaders({
     'Content-Type': 'application/json',
   });
@@ -45,20 +48,21 @@ export class AppComponent implements OnInit {
     withCredentials: true,
   };
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private sanitizer: DomSanitizer) {}
 
   ngOnInit(): void {
     this.getBuckets();
   }
-  teller:number=0;
+  teller: number = 0;
 
   simulatePurchase(): void {
-    this.triggmebody.total_purchase =0.0;
-    this.triggmebody.tilgodelapp =[];
-    this.triggmebody.triggme_avgift =[];
-    this.triggmebody.trigg_purchase =[];
-    this.triggmebody.humaniter_andel =[];
-    this.teller=0;
+    this.triggmebody.total_purchase = 0.0;
+    this.triggmebody.tilgodelapp = [];
+    this.triggmebody.triggme_avgift = [];
+    this.triggmebody.trigg_purchase = [];
+    this.triggmebody.humaniter_andel = [];
+    this.triggmebody.qrcode = [];
+    this.teller = 0;
     for (let i = 0; i < this.simulate_count; i++) {
       setTimeout(() => {
         const r = Math.random() * Math.random();
@@ -69,7 +73,6 @@ export class AppComponent implements OnInit {
   }
 
   buySomething(p?: number): void {
-   
     let lp = this.last_purchase;
     if (p) {
       lp = {
@@ -97,14 +100,31 @@ export class AppComponent implements OnInit {
             const a = Object.keys(result);
             bucket.buyCount++;
             a.forEach((item: any) => {
-              bucket[item + 'Hot'] = Math.abs(bucket[item] - result[item]) > 0.01;
+              bucket[item + 'Hot'] =
+                Math.abs(bucket[item] - result[item]) > 0.01;
               bucket[item] = result[item];
             });
-            if (bucket.latestDiscountValue>0.0) {
-                this.triggmebody.trigg_purchase.push(this.last_purchase.lastPurchase);
-                this.triggmebody.tilgodelapp.push(bucket.latestDiscountValue);
-                this.triggmebody.triggme_avgift.push(bucket.triggMeFeeValue);
-                this.triggmebody.humaniter_andel.push(bucket.humanitarianValue);;
+            if (bucket.latestDiscountValue > 0.0) {
+              this.triggmebody.trigg_purchase.push(
+                this.last_purchase.lastPurchase
+              );
+              this.triggmebody.tilgodelapp.push(bucket.latestDiscountValue);
+              const qrcontent = {
+                qrcode_content: 'Tilgodelapp kr ' + bucket.latestDiscountValue,
+              };
+              this.http
+                .post('http://localhost:8778/triggme/demo/qrcode', qrcontent, {
+                  headers: this.httpHeaders,
+                  responseType: 'text',
+                  observe: 'body',
+                  withCredentials: false,
+                })
+                .subscribe((result: any) => {
+                  const qr = this.sanitizer.bypassSecurityTrustResourceUrl(result);
+                  this.triggmebody.qrcode.push(qr);
+                });
+              this.triggmebody.triggme_avgift.push(bucket.triggMeFeeValue);
+              this.triggmebody.humaniter_andel.push(bucket.humanitarianValue);
             }
           }
         });
@@ -120,8 +140,10 @@ export class AppComponent implements OnInit {
         withCredentials: false,
       })
       .subscribe((result: any) => {
+        console.log(result);
+
         this.bucketInput = result['buckets'];
-        this.bucketInput.forEach((bucket:any)=> bucket.buyCount=0)
+        this.bucketInput.forEach((bucket: any) => (bucket.buyCount = 0));
         this.maxAmount =
           this.bucketInput[this.bucketInput.length - 1].purchaseLimitHigh;
       });
