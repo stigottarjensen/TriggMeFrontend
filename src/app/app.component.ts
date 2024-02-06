@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { KeyValue } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
+import * as forge from 'node-forge'
+
 
 @Component({
   selector: 'app-root',
@@ -34,6 +36,9 @@ export class AppComponent implements OnInit {
   };
 
   maxAmount: number = 0;
+  username:string="";
+  password:string="";
+  token:any=null;
 
   bucketInput: any[] = [];
   buyBucket: any = {};
@@ -51,8 +56,22 @@ export class AppComponent implements OnInit {
   constructor(private http: HttpClient, private sanitizer: DomSanitizer) {}
 
   ngOnInit(): void {
-    this.getBuckets();
   }
+
+  login():void {
+    if(this.username.length>1 && this.password.length>1) {
+      this.http
+      .post('http://localhost:8778/triggme/demo', {user:this.username,pass:this.password}, {
+        headers: this.httpHeaders,
+        responseType: 'json',
+        observe: 'body',
+        withCredentials: false,
+      })
+      .subscribe((result: any) => {console.log(result);
+      });
+    }
+  }
+
   teller: number = 0;
 
   simulatePurchase(): void {

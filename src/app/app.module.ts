@@ -4,6 +4,7 @@ import { HttpClientModule } from '@angular/common/http'
 import { AppComponent } from './app.component';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { MatDialogModule} from '@angular/material/dialog';
 
 @NgModule({
   declarations: [
@@ -13,7 +14,8 @@ import { CommonModule } from '@angular/common';
     BrowserModule,
     HttpClientModule,
     FormsModule, 
-    CommonModule
+    CommonModule,
+    MatDialogModule
   ],
   providers: [],
   bootstrap: [AppComponent]
