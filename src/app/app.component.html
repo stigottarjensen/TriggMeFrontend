@@ -18,7 +18,7 @@
       <td><input type="number" [(ngModel)]="triggmebody.innkjopspris_prosent"></td>
     </tr>
     <tr>
-      <td>Typisk kjøpesum</td>
+      <td>Test kjøpesum</td>
       <td><input type="number" [(ngModel)]="triggmebody.average_purchase"></td>
     </tr>
     <tr>
@@ -61,30 +61,37 @@
   <p><button (click)="simulatePurchase()">Simuler </button><input type="number" [(ngModel)]="simulate_count"
       class="smal"> kjøp<span>{{teller}}</span></p>
   <img *ngIf="showImage" src="{{qrCode}}" />
-  <table (click)="showId=!showId" *ngIf="showId">
+  <span (click)="showBuckets=!showBuckets">Vis bøtter</span>
+  <table *ngIf="showBuckets">
     <!-- <th *ngFor="let item of bucketInput[0] | keyvalue" >{{item.key}}</th> -->
     <tr>
-      <td *ngIf="showId">Id</td>
+      <td>Id</td>
       <td>Nr</td>
       <td>Count</td>
-      <td>lastPurchase</td>
+      <td>Siste kjøpsbeløp</td>
       <td>triggSaldo</td>
+      <td>Siste rabattbeløp</td>
       <td>tippingValue</td>
       <td>TriggFee</td>
       <td>Humanitarian</td>
     </tr>
-    <tr *ngFor="let bucket of bucketInput">
-      <!-- <td *ngFor="let item of bucket | keyvalue; let i=index;" [ngStyle]="{'background-color': bucket[i] > 0 ? 'pink':'white'}">{{item.value}}</td> -->
-      <td>{{bucket.bucketId}}</td>
-      <td>{{bucket.bucketNr}}</td>
-      <td [ngClass]="{'hot':bucket.lastPurchaseHot , 'normal': !bucket.lastPurchaseHot }">{{bucket.buyCount}}</td>
-      <td [ngClass]="{'hot':bucket.lastPurchaseHot , 'normal': !bucket.lastPurchaseHot }">{{bucket.lastPurchase}}</td>
-      <td [ngClass]="{'hot':bucket.triggSaldoHot , 'normal': !bucket.triggSaldoHot }">{{bucket.triggSaldo}}</td>
-      <td>{{bucket.tippingValue}}</td>
-      <td [ngClass]="{'trigg':bucket.triggMeFeeValueHot , 'triggnormal': !bucket.triggMeFeeValueHot }">
-        {{bucket.triggMeFeeValue}}</td>
-      <td [ngClass]="{'trigg':bucket.humanitarianValueHot , 'triggnormal': !bucket.humanitarianValueHot }">
-        {{bucket.humanitarianValue}}</td>
-    </tr>
+    <ng-container *ngFor="let bucket of bucketInput">
+      <tr
+        *ngIf="triggmebody.average_purchase<minimumBucketAmount || (triggmebody.average_purchase>=bucket.purchaseLimitLow && triggmebody.average_purchase<=bucket.purchaseLimitHigh)">
+        <td>{{bucket.bucketId}}</td>
+        <td>{{bucket.bucketNr}}</td>
+        <td [ngClass]="{'veryhot':bucket.lastPurchaseHot , 'verynormal': !bucket.lastPurchaseHot }">{{bucket.buyCount}}
+        </td>
+        <td [ngClass]="{'hot':bucket.lastPurchaseHot , 'normal': !bucket.lastPurchaseHot }">{{bucket.lastPurchase}}</td>
+        <td [ngClass]="{'hot':bucket.triggSaldoHot , 'normal': !bucket.triggSaldoHot }">{{bucket.triggSaldo}}</td>
+        <td [ngClass]="{'hot':bucket.triggSaldoHot , 'normal': !bucket.triggSaldoHot }">{{bucket.lastDiscountAmount}}
+        </td>
+        <td>{{bucket.tippingValue}}</td>
+        <td [ngClass]="{'trigg':bucket.triggMeFeeValueHot , 'triggnormal': !bucket.triggMeFeeValueHot }">
+          {{bucket.triggMeFeeValue}}</td>
+        <td [ngClass]="{'trigg':bucket.humanitarianValueHot , 'triggnormal': !bucket.humanitarianValueHot }">
+          {{bucket.humanitarianValue}}</td>
+      </tr>
+    </ng-container>
   </table>
 </div>

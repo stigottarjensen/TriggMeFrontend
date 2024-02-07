@@ -2,8 +2,7 @@ import { Component, OnInit, Inject } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { KeyValue } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
-import * as forge from 'node-forge'
-
+import * as forge from 'node-forge';
 
 @Component({
   selector: 'app-root',
@@ -13,10 +12,11 @@ import * as forge from 'node-forge'
 export class AppComponent implements OnInit {
   title = 'TriggMeFrontend';
   showImage = false;
-  showId = false;
+  showBuckets = true;
   qrCode = '';
 
   triggmebody = {
+    token: '',
     discount_level: 2.0,
     average_purchase_count: 0,
     innkjopspris_prosent: 2.0,
@@ -33,12 +33,14 @@ export class AppComponent implements OnInit {
 
   last_purchase = {
     lastPurchase: 0.0,
+    token: '',
   };
 
   maxAmount: number = 0;
-  username:string="";
-  password:string="";
-  token:any=null;
+  minimumBucketAmount: number = 0.0;
+  username: string = '';
+  password: string = '';
+  token: any = null;
 
   bucketInput: any[] = [];
   buyBucket: any = {};
@@ -55,20 +57,27 @@ export class AppComponent implements OnInit {
 
   constructor(private http: HttpClient, private sanitizer: DomSanitizer) {}
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
-  login():void {
-    if(this.username.length>1 && this.password.length>1) {
+  login(): void {
+    if (this.username.length > 1 && this.password.length > 1) {
       this.http
-      .post('http://localhost:8778/triggme/demo', {user:this.username,pass:this.password}, {
-        headers: this.httpHeaders,
-        responseType: 'json',
-        observe: 'body',
-        withCredentials: false,
-      })
-      .subscribe((result: any) => {console.log(result);
-      });
+        .post(
+          'http://localhost:8778/triggme/demo',
+          { user: this.username, pass: this.password },
+          {
+            headers: this.httpHeaders,
+            responseType: 'json',
+            observe: 'body',
+            withCredentials: false,
+          }
+        )
+        .subscribe((result: any) => {
+          console.log(result);
+          this.token = result.token;
+          this.last_purchase.token = this.token;
+          this.triggmebody.token = this.token;
+        });
     }
   }
 
@@ -82,20 +91,35 @@ export class AppComponent implements OnInit {
     this.triggmebody.humaniter_andel = [];
     this.triggmebody.qrcode = [];
     this.teller = 0;
+    let buck = [];
+    let low = 0.0;
+    let high = this.maxAmount;
+    if (this.triggmebody.average_purchase >= this.minimumBucketAmount) {
+      buck = this.bucketInput.filter(
+        (bucket: any) =>
+          this.triggmebody.average_purchase >= bucket.purchaseLimitLow &&
+          this.triggmebody.average_purchase <= bucket.purchaseLimitHigh
+      );
+      low = buck[0].purchaseLimitLow;
+      high = buck[0].purchaseLimitHigh;
+    }
+
     for (let i = 0; i < this.simulate_count; i++) {
       setTimeout(() => {
         const r = Math.random() * Math.random();
-        const p = Math.floor(this.maxAmount * r);
+        const p = Math.floor((high - low) * r + low);
         this.buySomething(p);
-      }, 200 * i);
+      }, 60 * i);
     }
   }
 
   buySomething(p?: number): void {
+    if (!p || p < this.minimumBucketAmount) return;
     let lp = this.last_purchase;
     if (p) {
       lp = {
         lastPurchase: p,
+        token: this.token,
       };
     }
     this.last_purchase = lp;
@@ -112,16 +136,24 @@ export class AppComponent implements OnInit {
         this.buyBucket = result;
         this.bucketInput.forEach((bucket: any) => {
           const arr = Object.keys(bucket);
-          arr.forEach((item: any) => {
-            bucket[item + 'Hot'] = false;
+          arr.forEach((item: string) => {
+            if (item.includes('Hot')) {
+              delete bucket[item];
+            } else {
+              bucket[item + 'Hot'] = false;
+            }
           });
           if (result.bucketId === bucket.bucketId) {
             const a = Object.keys(result);
             bucket.buyCount++;
-            a.forEach((item: any) => {
-              bucket[item + 'Hot'] =
-                Math.abs(bucket[item] - result[item]) > 0.01;
-              bucket[item] = result[item];
+            a.forEach((item: string) => {
+              if (item.includes('Hot')) {
+                delete bucket[item];
+              } else {
+                bucket[item + 'Hot'] =
+                  Math.abs(bucket[item] - result[item]) > 0.01;
+                bucket[item] = result[item];
+              }
             });
             if (bucket.latestDiscountValue > 0.0) {
               this.triggmebody.trigg_purchase.push(
@@ -130,6 +162,7 @@ export class AppComponent implements OnInit {
               this.triggmebody.tilgodelapp.push(bucket.latestDiscountValue);
               const qrcontent = {
                 qrcode_content: 'Tilgodelapp kr ' + bucket.latestDiscountValue,
+                token: this.token,
               };
               this.http
                 .post('http://localhost:8778/triggme/demo/qrcode', qrcontent, {
@@ -139,7 +172,8 @@ export class AppComponent implements OnInit {
                   withCredentials: false,
                 })
                 .subscribe((result: any) => {
-                  const qr = this.sanitizer.bypassSecurityTrustResourceUrl(result);
+                  const qr =
+                    this.sanitizer.bypassSecurityTrustResourceUrl(result);
                   this.triggmebody.qrcode.push(qr);
                 });
               this.triggmebody.triggme_avgift.push(bucket.triggMeFeeValue);
@@ -163,6 +197,7 @@ export class AppComponent implements OnInit {
 
         this.bucketInput = result['buckets'];
         this.bucketInput.forEach((bucket: any) => (bucket.buyCount = 0));
+        this.minimumBucketAmount = this.bucketInput[0].purchaseLimitLow;
         this.maxAmount =
           this.bucketInput[this.bucketInput.length - 1].purchaseLimitHigh;
       });
