@@ -1,8 +1,7 @@
-import { Component, OnInit, Inject } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { KeyValue } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+
 import { DomSanitizer } from '@angular/platform-browser';
-import * as forge from 'node-forge';
 
 @Component({
   selector: 'app-root',
@@ -15,11 +14,17 @@ export class AppComponent implements OnInit {
   showBuckets = true;
   qrCode = '';
 
+  userAccess = {
+    stig: 1,
+    soj: 1,
+    gjest: 9,
+  };
+
   triggmebody = {
     token: '',
     discount_level: 2.0,
     average_purchase_count: 0,
-    innkjopspris_prosent: 2.0,
+    innkjopspris_prosent: 60.0,
     average_purchase: 240.0,
     triggme_fee_prosent: 10.0,
     humaniter_fee_prosent: 10.0,
@@ -28,12 +33,15 @@ export class AppComponent implements OnInit {
     tilgodelapp: [0],
     triggme_avgift: [0],
     humaniter_andel: [0],
+    last_cost: [0],
     qrcode: [{}],
   };
 
   last_purchase = {
     lastPurchase: 0.0,
     token: '',
+    discountLevel: 2.0,
+    innkjopsProsent: 50.0,
   };
 
   maxAmount: number = 0;
@@ -55,15 +63,25 @@ export class AppComponent implements OnInit {
     withCredentials: true,
   };
 
-  constructor(private http: HttpClient, private sanitizer: DomSanitizer) {}
+  error = '';
+  constructor(
+    private http: HttpClient,
+    private sanitizer: DomSanitizer
+  ) {}
 
-  ngOnInit(): void {}
+  host ='http://localhost:8778';
+
+  ngOnInit(): void {
+    const url = window.location.href;
+    if (!url.includes('4200'))
+    this.host='';
+  }
 
   login(): void {
     if (this.username.length > 1 && this.password.length > 1) {
       this.http
         .post(
-          'http://localhost:8778/triggme/demo',
+          this.host+'/triggme/demo',
           { user: this.username, pass: this.password },
           {
             headers: this.httpHeaders,
@@ -74,6 +92,7 @@ export class AppComponent implements OnInit {
         )
         .subscribe((result: any) => {
           console.log(result);
+          if (result.error) this.error = result.error;
           this.token = result.token;
           this.last_purchase.token = this.token;
           this.triggmebody.token = this.token;
@@ -89,6 +108,7 @@ export class AppComponent implements OnInit {
     this.triggmebody.triggme_avgift = [];
     this.triggmebody.trigg_purchase = [];
     this.triggmebody.humaniter_andel = [];
+    this.triggmebody.last_cost = [];
     this.triggmebody.qrcode = [];
     this.teller = 0;
     let buck = [];
@@ -109,7 +129,7 @@ export class AppComponent implements OnInit {
         const r = Math.random() * Math.random();
         const p = Math.floor((high - low) * r + low);
         this.buySomething(p);
-      }, 60 * i);
+      }, 50 * i);
     }
   }
 
@@ -120,12 +140,14 @@ export class AppComponent implements OnInit {
       lp = {
         lastPurchase: p,
         token: this.token,
+        discountLevel: this.triggmebody.discount_level,
+        innkjopsProsent: this.triggmebody.innkjopspris_prosent,
       };
     }
     this.last_purchase = lp;
     this.triggmebody.total_purchase += this.last_purchase.lastPurchase;
     this.http
-      .post('http://localhost:8778/triggme/demo/buy', lp, {
+      .post(this.host+'/triggme/demo/buy', lp, {
         headers: this.httpHeaders,
         responseType: 'json',
         observe: 'body',
@@ -165,7 +187,7 @@ export class AppComponent implements OnInit {
                 token: this.token,
               };
               this.http
-                .post('http://localhost:8778/triggme/demo/qrcode', qrcontent, {
+                .post(this.host+'/triggme/demo/qrcode', qrcontent, {
                   headers: this.httpHeaders,
                   responseType: 'text',
                   observe: 'body',
@@ -178,6 +200,7 @@ export class AppComponent implements OnInit {
                 });
               this.triggmebody.triggme_avgift.push(bucket.triggMeFeeValue);
               this.triggmebody.humaniter_andel.push(bucket.humanitarianValue);
+              this.triggmebody.last_cost.push(bucket.lastDiscountCost);
             }
           }
         });
@@ -186,7 +209,7 @@ export class AppComponent implements OnInit {
 
   getBuckets(): void {
     this.http
-      .post('http://localhost:8778/triggme/demo/setup', this.triggmebody, {
+      .post(this.host+'/triggme/demo/setup', this.triggmebody, {
         headers: this.httpHeaders,
         responseType: 'json',
         observe: 'body',

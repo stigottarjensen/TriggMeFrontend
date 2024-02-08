@@ -1,7 +1,7 @@
 <div *ngIf="!token">
   <p>User: <input type="text" [(ngModel)]="username"></p>
-  <p>Pass: <input type="text" [(ngModel)]="password"></p>
-  <p><button (click)="login()">Login</button></p>
+  <p>Pass: <input type="password" [(ngModel)]="password" (keyup.enter)="login()"></p>
+  <p><button (click)="login()">Login</button><span> {{error}}</span></p>
 </div>
 <div *ngIf="token">
   <table>
@@ -15,11 +15,11 @@
     </tr>
     <tr>
       <td>Innkjøpspris %</td>
-      <td><input type="number" [(ngModel)]="triggmebody.innkjopspris_prosent"></td>
+      <td><input type="number" [(ngModel)]="triggmebody.innkjopspris_prosent" (change)="getBuckets()"></td>
     </tr>
     <tr>
       <td>Test kjøpesum</td>
-      <td><input type="number" [(ngModel)]="triggmebody.average_purchase"></td>
+      <td><input type="number" [(ngModel)]="triggmebody.average_purchase" (change)="getBuckets()"></td>
     </tr>
     <tr>
       <td>Triggme avgift % </td>
@@ -52,6 +52,10 @@
       <td class="green" *ngFor="let item of triggmebody.humaniter_andel"> {{item}} </td>
     </tr>
     <tr>
+      <td>Kostnad </td>
+      <td class="green" *ngFor="let item of triggmebody.last_cost"> {{item}} </td>
+    </tr>
+    <tr>
       <td>QRCode</td>
       <td class="green" *ngFor="let item of triggmebody.qrcode"> <img *ngIf="triggmebody.qrcode.length>0" [src]="item">
       </td>
@@ -61,7 +65,7 @@
   <p><button (click)="simulatePurchase()">Simuler </button><input type="number" [(ngModel)]="simulate_count"
       class="smal"> kjøp<span>{{teller}}</span></p>
   <img *ngIf="showImage" src="{{qrCode}}" />
-  <span (click)="showBuckets=!showBuckets">Vis bøtter</span>
+  <button (click)="showBuckets=!showBuckets">Vis bøtter</button>
   <table *ngIf="showBuckets">
     <!-- <th *ngFor="let item of bucketInput[0] | keyvalue" >{{item.key}}</th> -->
     <tr>
@@ -71,7 +75,6 @@
       <td>Siste kjøpsbeløp</td>
       <td>triggSaldo</td>
       <td>Siste rabattbeløp</td>
-      <td>tippingValue</td>
       <td>TriggFee</td>
       <td>Humanitarian</td>
     </tr>
@@ -86,8 +89,7 @@
         <td [ngClass]="{'hot':bucket.triggSaldoHot , 'normal': !bucket.triggSaldoHot }">{{bucket.triggSaldo}}</td>
         <td [ngClass]="{'hot':bucket.triggSaldoHot , 'normal': !bucket.triggSaldoHot }">{{bucket.lastDiscountAmount}}
         </td>
-        <td>{{bucket.tippingValue}}</td>
-        <td [ngClass]="{'trigg':bucket.triggMeFeeValueHot , 'triggnormal': !bucket.triggMeFeeValueHot }">
+        <td [ngClass]="{'trigg':bucket.humanitarianValueHot , 'triggnormal': !bucket.humanitarianValueHot }">
           {{bucket.triggMeFeeValue}}</td>
         <td [ngClass]="{'trigg':bucket.humanitarianValueHot , 'triggnormal': !bucket.humanitarianValueHot }">
           {{bucket.humanitarianValue}}</td>
