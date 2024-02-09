@@ -4,6 +4,7 @@
   <p><button (click)="login()">Login</button><span> {{error}}</span></p>
 </div>
 <div *ngIf="token">
+  <p><button (click)="token=null">Logut</button></p>
   <table>
     <tr>
       <td>Rabatt %</td>
@@ -28,6 +29,15 @@
     <tr>
       <td>Humanitær %</td>
       <td><input type="number" [(ngModel)]="triggmebody.triggme_fee_prosent"></td>
+    </tr>
+    <tr>
+      <td><button (click)="simulatePurchase()">Simuler kjøp</button><input type="number" [(ngModel)]="simulate_count"
+        class="smal"> </td>
+      <td><div class="progress-container">
+        <div class="progress-bar" [ngStyle]="{'width.%':count_percent}"></div>
+        <div
+          class="progress-text">{{teller}}</div>
+        </div></td>
     </tr>
     <tr>
       <td>Totalomsetning</td>
@@ -56,14 +66,16 @@
       <td class="green" *ngFor="let item of triggmebody.last_cost"> {{item}} </td>
     </tr>
     <tr>
+      <td>Total kjøp</td>
+      <td class="green" *ngFor="let item of triggmebody.trigg_total_purchase"> {{item}} </td>
+    </tr>
+    <tr>
       <td>QRCode</td>
       <td class="green" *ngFor="let item of triggmebody.qrcode"> <img *ngIf="triggmebody.qrcode.length>0" [src]="item">
       </td>
     </tr>
   </table>
   <p><button (click)="getBuckets()">Lag bøtter</button></p>
-  <p><button (click)="simulatePurchase()">Simuler </button><input type="number" [(ngModel)]="simulate_count"
-      class="smal"> kjøp<span>{{teller}}</span></p>
   <img *ngIf="showImage" src="{{qrCode}}" />
   <button (click)="showBuckets=!showBuckets">Vis bøtter</button>
   <table *ngIf="showBuckets">
@@ -86,7 +98,12 @@
         <td [ngClass]="{'veryhot':bucket.lastPurchaseHot , 'verynormal': !bucket.lastPurchaseHot }">{{bucket.buyCount}}
         </td>
         <td [ngClass]="{'hot':bucket.lastPurchaseHot , 'normal': !bucket.lastPurchaseHot }">{{bucket.lastPurchase}}</td>
-        <td [ngClass]="{'hot':bucket.triggSaldoHot , 'normal': !bucket.triggSaldoHot }">{{bucket.triggSaldo}}</td>
+        <td><div class="progress-container">
+          <div class="progress-bar" [ngStyle]="{'width.%':bucket.progress}"></div>
+          <div
+            class="progress-text">{{bucket.triggSaldo}}</div>
+          </div>
+        </td>
         <td [ngClass]="{'hot':bucket.triggSaldoHot , 'normal': !bucket.triggSaldoHot }">{{bucket.lastDiscountAmount}}
         </td>
         <td [ngClass]="{'trigg':bucket.humanitarianValueHot , 'triggnormal': !bucket.humanitarianValueHot }">

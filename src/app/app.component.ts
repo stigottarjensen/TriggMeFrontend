@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 import { DomSanitizer } from '@angular/platform-browser';
+// ng build --base-href=/triggdmo/
 
 @Component({
   selector: 'app-root',
@@ -13,6 +14,7 @@ export class AppComponent implements OnInit {
   showImage = false;
   showBuckets = true;
   qrCode = '';
+  progress = 0;
 
   userAccess = {
     stig: 1,
@@ -23,13 +25,14 @@ export class AppComponent implements OnInit {
   triggmebody = {
     token: '',
     discount_level: 2.0,
-    average_purchase_count: 0,
-    innkjopspris_prosent: 60.0,
-    average_purchase: 240.0,
+    average_purchase_count: 50,
+    innkjopspris_prosent: 53.0,
+    average_purchase: 49.0,
     triggme_fee_prosent: 10.0,
     humaniter_fee_prosent: 10.0,
     total_purchase: 0.0,
     trigg_purchase: [0],
+    trigg_total_purchase: [0],
     tilgodelapp: [0],
     triggme_avgift: [0],
     humaniter_andel: [0],
@@ -64,24 +67,20 @@ export class AppComponent implements OnInit {
   };
 
   error = '';
-  constructor(
-    private http: HttpClient,
-    private sanitizer: DomSanitizer
-  ) {}
+  constructor(private http: HttpClient, private sanitizer: DomSanitizer) {}
 
-  host ='http://localhost:8778';
+  host = 'http://localhost:8778';
 
   ngOnInit(): void {
     const url = window.location.href;
-    if (!url.includes('4200'))
-    this.host='';
+    if (!url.includes('4200')) this.host = '';
   }
 
   login(): void {
     if (this.username.length > 1 && this.password.length > 1) {
       this.http
         .post(
-          this.host+'/triggme/demo',
+          this.host + '/triggme/demo',
           { user: this.username, pass: this.password },
           {
             headers: this.httpHeaders,
@@ -107,6 +106,7 @@ export class AppComponent implements OnInit {
     this.triggmebody.tilgodelapp = [];
     this.triggmebody.triggme_avgift = [];
     this.triggmebody.trigg_purchase = [];
+    this.triggmebody.trigg_total_purchase = []
     this.triggmebody.humaniter_andel = [];
     this.triggmebody.last_cost = [];
     this.triggmebody.qrcode = [];
@@ -133,7 +133,10 @@ export class AppComponent implements OnInit {
     }
   }
 
+  count_percent=0;
+
   buySomething(p?: number): void {
+    
     if (!p || p < this.minimumBucketAmount) return;
     let lp = this.last_purchase;
     if (p) {
@@ -147,7 +150,7 @@ export class AppComponent implements OnInit {
     this.last_purchase = lp;
     this.triggmebody.total_purchase += this.last_purchase.lastPurchase;
     this.http
-      .post(this.host+'/triggme/demo/buy', lp, {
+      .post(this.host + '/triggme/demo/buy', lp, {
         headers: this.httpHeaders,
         responseType: 'json',
         observe: 'body',
@@ -155,6 +158,7 @@ export class AppComponent implements OnInit {
       })
       .subscribe((result: any) => {
         this.teller++;
+        this.count_percent = Math.round(100*this.teller/this.simulate_count);
         this.buyBucket = result;
         this.bucketInput.forEach((bucket: any) => {
           const arr = Object.keys(bucket);
@@ -177,17 +181,21 @@ export class AppComponent implements OnInit {
                 bucket[item] = result[item];
               }
             });
+            bucket.progress =
+              '' +
+              Math.round((bucket.triggSaldo * 100) / bucket.purchaseLimitHigh);
             if (bucket.latestDiscountValue > 0.0) {
               this.triggmebody.trigg_purchase.push(
                 this.last_purchase.lastPurchase
               );
+              this.triggmebody.trigg_total_purchase.push(bucket.triggTotalPurchase);
               this.triggmebody.tilgodelapp.push(bucket.latestDiscountValue);
               const qrcontent = {
                 qrcode_content: 'Tilgodelapp kr ' + bucket.latestDiscountValue,
                 token: this.token,
               };
               this.http
-                .post(this.host+'/triggme/demo/qrcode', qrcontent, {
+                .post(this.host + '/triggme/demo/qrcode', qrcontent, {
                   headers: this.httpHeaders,
                   responseType: 'text',
                   observe: 'body',
@@ -209,7 +217,7 @@ export class AppComponent implements OnInit {
 
   getBuckets(): void {
     this.http
-      .post(this.host+'/triggme/demo/setup', this.triggmebody, {
+      .post(this.host + '/triggme/demo/setup', this.triggmebody, {
         headers: this.httpHeaders,
         responseType: 'json',
         observe: 'body',
@@ -217,9 +225,13 @@ export class AppComponent implements OnInit {
       })
       .subscribe((result: any) => {
         console.log(result);
-
+        
         this.bucketInput = result['buckets'];
-        this.bucketInput.forEach((bucket: any) => (bucket.buyCount = 0));
+        this.triggmebody.average_purchase_count = this.bucketInput[0].averagePurchaseCount;
+        this.bucketInput.forEach((bucket: any) => {
+          bucket.buyCount = 0;
+          bucket.progress = 0;
+        });
         this.minimumBucketAmount = this.bucketInput[0].purchaseLimitLow;
         this.maxAmount =
           this.bucketInput[this.bucketInput.length - 1].purchaseLimitHigh;
