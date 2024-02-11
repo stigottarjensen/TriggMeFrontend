@@ -11,6 +11,9 @@ import { DomSanitizer } from '@angular/platform-browser';
 })
 export class AppComponent implements OnInit {
   title = 'TriggMeFrontend';
+  username: string = '';
+  password: string = '';
+  token: any = null;
   showImage = false;
   showBuckets = true;
   qrCode = '';
@@ -49,10 +52,6 @@ export class AppComponent implements OnInit {
 
   maxAmount: number = 0;
   minimumBucketAmount: number = 0.0;
-  username: string = '';
-  password: string = '';
-  token: any = null;
-
   bucketInput: any[] = [];
   buyBucket: any = {};
   simulate_count = 100;
@@ -106,7 +105,7 @@ export class AppComponent implements OnInit {
     this.triggmebody.tilgodelapp = [];
     this.triggmebody.triggme_avgift = [];
     this.triggmebody.trigg_purchase = [];
-    this.triggmebody.trigg_total_purchase = []
+    this.triggmebody.trigg_total_purchase = [];
     this.triggmebody.humaniter_andel = [];
     this.triggmebody.last_cost = [];
     this.triggmebody.qrcode = [];
@@ -133,10 +132,9 @@ export class AppComponent implements OnInit {
     }
   }
 
-  count_percent=0;
+  count_percent = 0;
 
   buySomething(p?: number): void {
-    
     if (!p || p < this.minimumBucketAmount) return;
     let lp = this.last_purchase;
     if (p) {
@@ -157,8 +155,14 @@ export class AppComponent implements OnInit {
         withCredentials: false,
       })
       .subscribe((result: any) => {
+        if (result.error) {
+          this.token = null;
+          return;
+        }
         this.teller++;
-        this.count_percent = Math.round(100*this.teller/this.simulate_count);
+        this.count_percent = Math.round(
+          (100 * this.teller) / this.simulate_count
+        );
         this.buyBucket = result;
         this.bucketInput.forEach((bucket: any) => {
           const arr = Object.keys(bucket);
@@ -188,7 +192,9 @@ export class AppComponent implements OnInit {
               this.triggmebody.trigg_purchase.push(
                 this.last_purchase.lastPurchase
               );
-              this.triggmebody.trigg_total_purchase.push(bucket.triggTotalPurchase);
+              this.triggmebody.trigg_total_purchase.push(
+                bucket.triggTotalPurchase
+              );
               this.triggmebody.tilgodelapp.push(bucket.latestDiscountValue);
               const qrcontent = {
                 qrcode_content: 'Tilgodelapp kr ' + bucket.latestDiscountValue,
@@ -225,9 +231,14 @@ export class AppComponent implements OnInit {
       })
       .subscribe((result: any) => {
         console.log(result);
-        
+
+        if (result.error) {
+          this.token = null;
+          return;
+        }
         this.bucketInput = result['buckets'];
-        this.triggmebody.average_purchase_count = this.bucketInput[0].averagePurchaseCount;
+        this.triggmebody.average_purchase_count =
+          this.bucketInput[0].averagePurchaseCount;
         this.bucketInput.forEach((bucket: any) => {
           bucket.buyCount = 0;
           bucket.progress = 0;
