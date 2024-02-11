@@ -53,7 +53,7 @@ export class AppComponent implements OnInit {
   maxAmount: number = 0;
   minimumBucketAmount: number = 0.0;
   bucketInput: any[] = [];
-  buyBucket: any = {};
+  //buyBucket: any = {};
   simulate_count = 100;
   httpHeaders = new HttpHeaders({
     'Content-Type': 'application/json',
@@ -155,6 +155,8 @@ export class AppComponent implements OnInit {
         withCredentials: false,
       })
       .subscribe((result: any) => {
+        console.log(result);
+        
         if (result.error) {
           this.token = null;
           return;
@@ -163,7 +165,7 @@ export class AppComponent implements OnInit {
         this.count_percent = Math.round(
           (100 * this.teller) / this.simulate_count
         );
-        this.buyBucket = result;
+       // this.buyBucket = result;
         this.bucketInput.forEach((bucket: any) => {
           const arr = Object.keys(bucket);
           arr.forEach((item: string) => {
