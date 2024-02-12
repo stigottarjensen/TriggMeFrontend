@@ -19,6 +19,9 @@ div {
 
 img {
     width: 100px;
+}
+
+.qrcode {
     height: 100px;
 }
 
@@ -34,6 +37,10 @@ td {
 
 span {
     margin-left: 20px;
+}
+
+.trigg_saldo {
+    width: 150px;
 }
 
 .progress-container {

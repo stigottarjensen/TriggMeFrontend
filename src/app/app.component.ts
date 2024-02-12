@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 import { DomSanitizer } from '@angular/platform-browser';
@@ -9,11 +9,12 @@ import { DomSanitizer } from '@angular/platform-browser';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, AfterViewInit {
   title = 'TriggMeFrontend';
   username: string = '';
   password: string = '';
   token: any = null;
+  session_timeout_ms = 1 * 60 * 1000;
   showImage = false;
   showBuckets = true;
   qrCode = '';
@@ -25,7 +26,8 @@ export class AppComponent implements OnInit {
     gjest: 9,
   };
 
-  triggmebody = {
+  init_triggmebody = {
+    currency: 'NOK',
     token: '',
     discount_level: 2.0,
     average_purchase_count: 50,
@@ -40,8 +42,12 @@ export class AppComponent implements OnInit {
     triggme_avgift: [0],
     humaniter_andel: [0],
     last_cost: [0],
+    total_acc_trigg_fee: 0.0,
+    total_acc_humanitarian: 0.0,
     qrcode: [{}],
   };
+
+  triggmebody = JSON.parse(JSON.stringify(this.init_triggmebody));
 
   last_purchase = {
     lastPurchase: 0.0,
@@ -49,6 +55,16 @@ export class AppComponent implements OnInit {
     discountLevel: 2.0,
     innkjopsProsent: 50.0,
   };
+
+  currencyNames: any[] = [
+    'Norske kroner',
+    'Svenske kroner',
+    'Danske kroner',
+    'EURO',
+    'Britiske pund',
+    'Amerikanske dollar',
+  ];
+  currencySymbols: any[] = ['NOK', 'SEK', 'DK', '€', '£', '$'];
 
   maxAmount: number = 0;
   minimumBucketAmount: number = 0.0;
@@ -68,11 +84,34 @@ export class AppComponent implements OnInit {
   error = '';
   constructor(private http: HttpClient, private sanitizer: DomSanitizer) {}
 
+  timeOutHandle: any;
+
+  sessionTimeout(): void {
+    if (this.timeOutHandle) clearTimeout(this.timeOutHandle);
+    this.timeOutHandle = setTimeout(
+      () => (this.token = null),
+      this.session_timeout_ms
+    );
+  }
+
+  ngAfterViewInit(): void {
+    this.triggmebody = JSON.parse(JSON.stringify(this.init_triggmebody));
+    this.triggmebody.currency = this.currencySymbols[0];
+    this.getBuckets();
+  }
+
   host = 'http://localhost:8778';
 
   ngOnInit(): void {
     const url = window.location.href;
     if (!url.includes('4200')) this.host = '';
+  }
+
+  currencyChange(): void {
+    if ('$ £ €'.includes(this.triggmebody.currency))
+      this.triggmebody.average_purchase = 4.5;
+    else this.triggmebody.average_purchase = 45;
+    this.getBuckets();
   }
 
   login(): void {
@@ -89,11 +128,14 @@ export class AppComponent implements OnInit {
           }
         )
         .subscribe((result: any) => {
-          console.log(result);
           if (result.error) this.error = result.error;
           this.token = result.token;
+          this.session_timeout_ms = parseInt(result.session_timeout)*60*1000;
           this.last_purchase.token = this.token;
+          this.triggmebody = JSON.parse(JSON.stringify(this.init_triggmebody));
           this.triggmebody.token = this.token;
+          this.sessionTimeout();
+          this.getBuckets();
         });
     }
   }
@@ -155,8 +197,7 @@ export class AppComponent implements OnInit {
         withCredentials: false,
       })
       .subscribe((result: any) => {
-        console.log(result);
-        
+        this.sessionTimeout();
         if (result.error) {
           this.token = null;
           return;
@@ -165,7 +206,7 @@ export class AppComponent implements OnInit {
         this.count_percent = Math.round(
           (100 * this.teller) / this.simulate_count
         );
-       // this.buyBucket = result;
+        // this.buyBucket = result;
         this.bucketInput.forEach((bucket: any) => {
           const arr = Object.keys(bucket);
           arr.forEach((item: string) => {
@@ -190,6 +231,10 @@ export class AppComponent implements OnInit {
             bucket.progress =
               '' +
               Math.round((bucket.triggSaldo * 100) / bucket.purchaseLimitHigh);
+            this.triggmebody.total_acc_trigg_fee = bucket.totalAccTriggFee;
+            this.triggmebody.total_acc_humanitarian =
+              bucket.totalAccHumanitarian;
+
             if (bucket.latestDiscountValue > 0.0) {
               this.triggmebody.trigg_purchase.push(
                 this.last_purchase.lastPurchase
@@ -210,6 +255,7 @@ export class AppComponent implements OnInit {
                   withCredentials: false,
                 })
                 .subscribe((result: any) => {
+                  this.sessionTimeout();
                   const qr =
                     this.sanitizer.bypassSecurityTrustResourceUrl(result);
                   this.triggmebody.qrcode.push(qr);
@@ -232,8 +278,7 @@ export class AppComponent implements OnInit {
         withCredentials: false,
       })
       .subscribe((result: any) => {
-        console.log(result);
-
+        this.sessionTimeout();
         if (result.error) {
           this.token = null;
           return;
