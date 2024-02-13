@@ -96,9 +96,9 @@
     </tr>
   </table>
   <p><button (click)="getBuckets()">Lag bøtter</button></p>
-  <img *ngIf="showImage" src="{{qrCode}}" class="qrcode"/>
-  <button (click)="showBuckets=!showBuckets">Vis bøtter</button>
-  <table *ngIf="showBuckets">
+  <!-- <img *ngIf="showImage" src="{{qrCode}}" class="qrcode"/> -->
+  <button (click)="showBuckets=!showBuckets" *ngIf="userAccess<3">Vis bøtter</button>
+  <table *ngIf="showBuckets && userAccess<3">
     <!-- <th *ngFor="let item of bucketInput[0] | keyvalue" >{{item.key}}</th> -->
     <tr>
       <td>Id</td>

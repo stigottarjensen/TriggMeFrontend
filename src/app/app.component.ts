@@ -20,11 +20,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   qrCode = '';
   progress = 0;
 
-  userAccess = {
-    stig: 1,
-    soj: 1,
-    gjest: 9,
-  };
+  userAccess:number = 100;
 
   init_triggmebody = {
     currency: 'NOK',
@@ -97,6 +93,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     this.triggmebody = JSON.parse(JSON.stringify(this.init_triggmebody));
     this.triggmebody.currency = this.currencySymbols[0];
+    this.simulate_count = 100;
     this.getBuckets();
   }
 
@@ -115,6 +112,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   login(): void {
+    this.simulate_count = 100;
     if (this.username.length > 1 && this.password.length > 1) {
       this.http
         .post(
@@ -130,6 +128,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         .subscribe((result: any) => {
           if (result.error) this.error = result.error;
           this.token = result.token;
+          this.userAccess = parseInt(result.access);
           this.session_timeout_ms = parseInt(result.session_timeout)*60*1000;
           this.last_purchase.token = this.token;
           this.triggmebody = JSON.parse(JSON.stringify(this.init_triggmebody));
