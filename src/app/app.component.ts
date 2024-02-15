@@ -166,7 +166,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     for (let i = 0; i < this.simulate_count; i++) {
       setTimeout(() => {
-        const r = Math.random() * Math.random();
+        const r = Math.random() * Math.random() * Math.random();
         const p = Math.floor((high - low) * r + low);
         this.buySomething(p);
       }, 50 * i);

@@ -8,7 +8,7 @@
   <p><button (click)="token=null">Logut</button></p>
   <table>
     <tr>
-      <td>Valuta</td>
+      <td class="label">Valuta</td>
       <td>
         <select id="currency" [(ngModel)]="triggmebody.currency" (ngModelChange)="currencyChange()">
           <option *ngFor="let valuta of currencySymbols; let i=index;" [value]="valuta">{{
@@ -18,27 +18,27 @@
       <td rowspan="4"><img src='{{"assets/"+triggmebody.currency+".png"}}'/></td>
     </tr>
     <tr>
-      <td>Rabatt %</td>
+      <td class="label">Rabatt %</td>
       <td><input type="number" [(ngModel)]="triggmebody.discount_level" (change)="getBuckets()"></td>
     </tr>
     <tr>
-      <td>Gjennomsnitt antall handler</td>
+      <td class="label">Gjennomsnitt antall handler</td>
       <td class="green">{{triggmebody.average_purchase_count}}</td>
     </tr>
     <tr>
-      <td>Innkjøpspris %</td>
+      <td class="label">Innkjøpspris %</td>
       <td><input type="number" [(ngModel)]="triggmebody.innkjopspris_prosent" (change)="getBuckets()"></td>
     </tr>
     <tr>
-      <td>Test kjøpesum</td>
+      <td class="label">Test kjøpesum</td>
       <td><input type="number" data-type="currency" [(ngModel)]="triggmebody.average_purchase" (change)="getBuckets()"></td>
     </tr>
     <tr>
-      <td>Triggme avgift % </td>
+      <td class="label">Triggme avgift % </td>
       <td><input type="number" [(ngModel)]="triggmebody.humaniter_fee_prosent"></td>
     </tr>
     <tr>
-      <td>Humanitær %</td>
+      <td class="label">Humanitær %</td>
       <td><input type="number" [(ngModel)]="triggmebody.triggme_fee_prosent"></td>
     </tr>
     <tr>
@@ -52,46 +52,46 @@
       </td>
     </tr>
     <tr>
-      <td>Totalomsetning</td>
+      <td class="label">Totalomsetning</td>
       <td class="green">{{triggmebody.currency}} {{triggmebody.total_purchase | number:'1.2-2'}}</td>
     </tr>
     <tr>
-      <td>Total triggfee</td>
+      <td class="label">Total triggfee</td>
       <td class="green">{{triggmebody.currency}}{{triggmebody.total_acc_trigg_fee| number:'1.2-2'}}</td>
     </tr>
     <tr>
-      <td>Total humanitær</td>
+      <td class="label">Total humanitær</td>
       <td class="green">{{triggmebody.currency}}{{triggmebody.total_acc_humanitarian| number:'1.2-2'}}</td>
     </tr>
   </table>
-  <table>
+  <table *ngIf="triggmebody.trigg_purchase.length>0 && triggmebody.trigg_purchase[0]>0.0">
     <tr>
-      <td>Kjøpsbeløp ved tilgodelapp</td>
+      <td class="label">Kjøpsbeløp ved tilgodelapp</td>
       <td class="green" *ngFor="let item of triggmebody.trigg_purchase">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
     </tr>
     <tr>
-      <td>Tilgodelapp beløp</td>
+      <td class="label">Tilgodelapp beløp</td>
       <td class="green" *ngFor="let item of triggmebody.tilgodelapp">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
     </tr>
     <tr>
-      <td>Triggme avgift beløp</td>
+      <td class="label">Triggme avgift beløp</td>
       <td class="green" *ngFor="let item of triggmebody.triggme_avgift">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
     </tr>
     <tr>
-      <td>Humanitært beløp</td>
+      <td class="label">Humanitært beløp</td>
       <td class="green" *ngFor="let item of triggmebody.humaniter_andel">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
     </tr>
     <tr>
-      <td>Kostnad </td>
+      <td class="label">Kostnad </td>
       <td class="green" *ngFor="let item of triggmebody.last_cost">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
     </tr>
     <tr>
-      <td>Total kjøp</td>
+      <td class="label">Total kjøp</td>
       <td class="green" *ngFor="let item of triggmebody.trigg_total_purchase">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
     </tr>
     <tr>
-      <td>QRCode</td>
-      <td class="green" *ngFor="let item of triggmebody.qrcode"> <img *ngIf="triggmebody.qrcode.length>0" [src]="item">
+      <td class="label">QRCode</td>
+      <td class="green" *ngFor="let item of triggmebody.qrcode"> <img [src]="item">
       </td>
     </tr>
   </table>
@@ -101,16 +101,16 @@
   <table *ngIf="showBuckets && userAccess<3">
     <!-- <th *ngFor="let item of bucketInput[0] | keyvalue" >{{item.key}}</th> -->
     <tr>
-      <td>Id</td>
-      <td>Nr</td>
-      <td>Count</td>
-      <td>Siste kjøpsbeløp</td>
-      <td class="trigg_saldo">triggSaldo</td>
-      <td>Siste rabattbeløp</td>
-      <td>TriggFee</td>
-      <td>Humanitarian</td>
-      <td>sum TriggFee</td>
-      <td>sum Humanitarian</td>
+      <th>Id</th>
+      <th>Nr</th>
+      <th>Count</th>
+      <th>Siste kjøpsbeløp</th>
+      <th class="trigg_saldo">triggSaldo</th>
+      <th>Siste rabattbeløp</th>
+      <th>TriggFee</th>
+      <th>Humanitarian</th>
+      <th>sum TriggFee</th>
+      <th>sum Humanitarian</th>
     </tr>
     <ng-container *ngFor="let bucket of bucketInput">
       <tr
