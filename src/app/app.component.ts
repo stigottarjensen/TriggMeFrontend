@@ -3,6 +3,8 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 import { DomSanitizer } from '@angular/platform-browser';
 // ng build --base-href=/triggdmo/
+//sudo /Users/stigottarjensen/apache-tomcat-10.1.16/bin/startup.sh
+//sudo /Users/stigottarjensen/apache-tomcat-10.1.16/bin/shutdown.sh
 
 @Component({
   selector: 'app-root',
