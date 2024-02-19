@@ -2,7 +2,7 @@ import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 import { DomSanitizer } from '@angular/platform-browser';
-// ng build --base-href=/triggdmo/
+// ng build --base-href=/triggdemo/
 //sudo /Users/stigottarjensen/apache-tomcat-10.1.16/bin/startup.sh
 //sudo /Users/stigottarjensen/apache-tomcat-10.1.16/bin/shutdown.sh
 
@@ -13,6 +13,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 })
 export class AppComponent implements OnInit, AfterViewInit {
   title = 'TriggMeFrontend';
+  webApp = '/TriggMeServer';
   username: string = '';
   password: string = '';
   token: any = null;
@@ -22,7 +23,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   qrCode = '';
   progress = 0;
 
-  userAccess:number = 100;
+  userAccess: number = 100;
 
   init_triggmebody = {
     currency: 'NOK',
@@ -67,7 +68,6 @@ export class AppComponent implements OnInit, AfterViewInit {
   maxAmount: number = 0;
   minimumBucketAmount: number = 0.0;
   bucketInput: any[] = [];
-  //buyBucket: any = {};
   simulate_count = 100;
   httpHeaders = new HttpHeaders({
     'Content-Type': 'application/json',
@@ -118,7 +118,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     if (this.username.length > 1 && this.password.length > 1) {
       this.http
         .post(
-          this.host + '/triggme/demo',
+          this.host + this.webApp + '/demo',
           { user: this.username, pass: this.password },
           {
             headers: this.httpHeaders,
@@ -131,7 +131,8 @@ export class AppComponent implements OnInit, AfterViewInit {
           if (result.error) this.error = result.error;
           this.token = result.token;
           this.userAccess = parseInt(result.access);
-          this.session_timeout_ms = parseInt(result.session_timeout)*60*1000;
+          this.session_timeout_ms =
+            parseInt(result.session_timeout) * 60 * 1000;
           this.last_purchase.token = this.token;
           this.triggmebody = JSON.parse(JSON.stringify(this.init_triggmebody));
           this.triggmebody.token = this.token;
@@ -171,7 +172,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         const r = Math.random() * Math.random() * Math.random();
         const p = Math.floor((high - low) * r + low);
         this.buySomething(p);
-      }, 50 * i);
+      }, 30 * i);
     }
   }
 
@@ -191,7 +192,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.last_purchase = lp;
     this.triggmebody.total_purchase += this.last_purchase.lastPurchase;
     this.http
-      .post(this.host + '/triggme/demo/buy', lp, {
+      .post(this.host + this.webApp + '/demo/buy', lp, {
         headers: this.httpHeaders,
         responseType: 'json',
         observe: 'body',
@@ -207,7 +208,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.count_percent = Math.round(
           (100 * this.teller) / this.simulate_count
         );
-        // this.buyBucket = result;
         this.bucketInput.forEach((bucket: any) => {
           const arr = Object.keys(bucket);
           arr.forEach((item: string) => {
@@ -249,7 +249,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 token: this.token,
               };
               this.http
-                .post(this.host + '/triggme/demo/qrcode', qrcontent, {
+                .post(this.host + this.webApp + '/demo/qrcode', qrcontent, {
                   headers: this.httpHeaders,
                   responseType: 'text',
                   observe: 'body',
@@ -272,7 +272,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   getBuckets(): void {
     this.http
-      .post(this.host + '/triggme/demo/setup', this.triggmebody, {
+      .post(this.host + this.webApp + '/demo/setup', this.triggmebody, {
         headers: this.httpHeaders,
         responseType: 'json',
         observe: 'body',

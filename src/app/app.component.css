@@ -2,6 +2,9 @@
     background-color: rgb(214, 241, 233);
     padding: 3px;
     text-align: right;
+    width:125px;
+    min-width: 125px;
+    max-width: 125px;
 }
 
 input {
@@ -25,8 +28,28 @@ img {
     height: 100px;
 }
 
+.qr_table {
+    width:fit-content;
+}
+
+.qr_wrapper {
+    width: 95%;
+    overflow-x: auto;
+    position: relative;
+}
+
 .label {
     text-align: left;
+}
+
+.qr_label {
+    text-align: left;
+    position: sticky;
+    width:190px;
+    min-width: 190px;
+    max-width: 190px;
+    left:0px;
+    background-color: white;
 }
 
 td {

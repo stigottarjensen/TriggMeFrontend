@@ -64,39 +64,39 @@
       <td class="green">{{triggmebody.currency}}{{triggmebody.total_acc_humanitarian| number:'1.2-2'}}</td>
     </tr>
   </table>
-  <table *ngIf="triggmebody.trigg_purchase.length>0 && triggmebody.trigg_purchase[0]>0.0">
+  <div class="qr_wrapper" *ngIf="triggmebody.trigg_purchase.length>0 && triggmebody.trigg_purchase[0]>0.0">
+  <table  class="qr_table">
     <tr>
-      <td class="label">Kjøpsbeløp ved tilgodelapp</td>
+      <td class="qr_label">Kjøpsbeløp ved tilgodelapp</td>
       <td class="green" *ngFor="let item of triggmebody.trigg_purchase">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
     </tr>
     <tr>
-      <td class="label">Tilgodelapp beløp</td>
+      <td class="qr_label">Tilgodelapp beløp</td>
       <td class="green" *ngFor="let item of triggmebody.tilgodelapp">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
     </tr>
     <tr>
-      <td class="label">Triggme avgift beløp</td>
+      <td class="qr_label">Triggme avgift beløp</td>
       <td class="green" *ngFor="let item of triggmebody.triggme_avgift">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
     </tr>
     <tr>
-      <td class="label">Humanitært beløp</td>
+      <td class="qr_label">Humanitært beløp</td>
       <td class="green" *ngFor="let item of triggmebody.humaniter_andel">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
     </tr>
     <tr>
-      <td class="label">Kostnad </td>
+      <td class="qr_label">Kostnad </td>
       <td class="green" *ngFor="let item of triggmebody.last_cost">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
     </tr>
     <tr>
-      <td class="label">Total kjøp</td>
+      <td class="qr_label">Total kjøp</td>
       <td class="green" *ngFor="let item of triggmebody.trigg_total_purchase">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
     </tr>
     <tr>
-      <td class="label">QRCode</td>
+      <td class="qr_label">QRCode</td>
       <td class="green" *ngFor="let item of triggmebody.qrcode"> <img [src]="item">
       </td>
     </tr>
-  </table>
-  <p><button (click)="getBuckets()">Lag bøtter</button></p>
-  <!-- <img *ngIf="showImage" src="{{qrCode}}" class="qrcode"/> -->
+  </table></div>
+  <p><button (click)="getBuckets()" *ngIf="userAccess<3">Lag bøtter</button></p>
   <button (click)="showBuckets=!showBuckets" *ngIf="userAccess<3">Vis bøtter</button>
   <table *ngIf="showBuckets && userAccess<3">
     <!-- <th *ngFor="let item of bucketInput[0] | keyvalue" >{{item.key}}</th> -->
@@ -105,7 +105,7 @@
       <th>Nr</th>
       <th>Count</th>
       <th>Siste kjøpsbeløp</th>
-      <th class="trigg_saldo">triggSaldo</th>
+      <th class="trigg_saldo">BøtteSaldo</th>
       <th>Siste rabattbeløp</th>
       <th>TriggFee</th>
       <th>Humanitarian</th>
