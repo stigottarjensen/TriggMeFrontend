@@ -41,6 +41,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     triggme_avgift: [0],
     humaniter_andel: [0],
     last_cost: [0],
+    trigg_purchase_percent:[0],
     total_acc_trigg_fee: 0.0,
     total_acc_humanitarian: 0.0,
     qrcode: [{}],
@@ -153,6 +154,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.triggmebody.humaniter_andel = [];
     this.triggmebody.last_cost = [];
     this.triggmebody.qrcode = [];
+    this.triggmebody.trigg_purchase_percent = [];
     this.teller = 0;
     let buck = [];
     let low = 0.0;
@@ -200,6 +202,8 @@ export class AppComponent implements OnInit, AfterViewInit {
       })
       .subscribe((result: any) => {
         this.sessionTimeout();
+        console.log(result);
+        
         if (result.error) {
           this.token = null;
           return;
@@ -264,6 +268,7 @@ export class AppComponent implements OnInit, AfterViewInit {
               this.triggmebody.triggme_avgift.push(bucket.triggMeFeeValue);
               this.triggmebody.humaniter_andel.push(bucket.humanitarianValue);
               this.triggmebody.last_cost.push(bucket.lastDiscountCost);
+              this.triggmebody.trigg_purchase_percent.push(bucket.triggPurchasePercent);
             }
           }
         });

@@ -91,6 +91,10 @@
       <td class="green" *ngFor="let item of triggmebody.trigg_total_purchase">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
     </tr>
     <tr>
+      <td class="qr_label">Triggkjøp% av kjøpsbeløp tilgodelapp</td>
+      <td class="green" *ngFor="let item of triggmebody.trigg_purchase_percent">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
+    </tr>
+    <tr>
       <td class="qr_label">QRCode</td>
       <td class="green" *ngFor="let item of triggmebody.qrcode"> <img [src]="item">
       </td>
