@@ -115,7 +115,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   login(): void {
-    this.simulate_count = 100;
+    this.simulate_count = 500;
     if (this.username.length > 1 && this.password.length > 1) {
       this.http
         .post(
