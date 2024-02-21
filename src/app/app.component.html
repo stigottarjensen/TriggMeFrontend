@@ -57,11 +57,11 @@
     </tr>
     <tr>
       <td class="label">Total triggfee</td>
-      <td class="green">{{triggmebody.currency}}{{triggmebody.total_acc_trigg_fee| number:'1.2-2'}}</td>
+      <td class="green">{{triggmebody.currency}} {{triggmebody.total_acc_trigg_fee| number:'1.2-2'}}</td>
     </tr>
     <tr>
       <td class="label">Total humanitær</td>
-      <td class="green">{{triggmebody.currency}}{{triggmebody.total_acc_humanitarian| number:'1.2-2'}}</td>
+      <td class="green">{{triggmebody.currency}} {{triggmebody.total_acc_humanitarian| number:'1.2-2'}}</td>
     </tr>
   </table>
   <div class="qr_wrapper" *ngIf="triggmebody.trigg_purchase.length>0 && triggmebody.trigg_purchase[0]>0.0">
@@ -92,7 +92,7 @@
     </tr>
     <tr>
       <td class="qr_label">Triggkjøp% av kjøpsbeløp tilgodelapp</td>
-      <td class="green" *ngFor="let item of triggmebody.trigg_purchase_percent">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
+      <td class="green" *ngFor="let item of triggmebody.trigg_purchase_percent"> {{item| number:'1.2-2'}} % </td>
     </tr>
     <tr>
       <td class="qr_label">QRCode</td>

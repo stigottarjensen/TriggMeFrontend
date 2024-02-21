@@ -31,7 +31,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     discount_level: 2.0,
     average_purchase_count: 50,
     innkjopspris_prosent: 53.0,
-    average_purchase: 49.0,
+    average_purchase: 500.0,
     triggme_fee_prosent: 10.0,
     humaniter_fee_prosent: 10.0,
     total_purchase: 0.0,
@@ -109,8 +109,8 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   currencyChange(): void {
     if ('$ £ €'.includes(this.triggmebody.currency))
-      this.triggmebody.average_purchase = 4.5;
-    else this.triggmebody.average_purchase = 45;
+      this.triggmebody.average_purchase = 50;
+    else this.triggmebody.average_purchase = 500;
     this.getBuckets();
   }
 
@@ -168,11 +168,13 @@ export class AppComponent implements OnInit, AfterViewInit {
       low = buck[0].purchaseLimitLow;
       high = buck[0].purchaseLimitHigh;
     }
+    this.getBuckets();
 
     for (let i = 0; i < this.simulate_count; i++) {
       setTimeout(() => {
-        const r = Math.random() * Math.random() * Math.random();
-        const p = Math.floor((high - low) * r + low);
+        const ra = Math.random();
+        const p = Math.floor((high - low) * ra + low);
+        this.teller++;
         this.buySomething(p);
       }, 30 * i);
     }
@@ -202,13 +204,11 @@ export class AppComponent implements OnInit, AfterViewInit {
       })
       .subscribe((result: any) => {
         this.sessionTimeout();
-        console.log(result);
         
         if (result.error) {
           this.token = null;
           return;
         }
-        this.teller++;
         this.count_percent = Math.round(
           (100 * this.teller) / this.simulate_count
         );
@@ -239,6 +239,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             this.triggmebody.total_acc_trigg_fee = bucket.totalAccTriggFee;
             this.triggmebody.total_acc_humanitarian =
               bucket.totalAccHumanitarian;
+            this.triggmebody.average_purchase_count= bucket.averagePurchaseCount;
 
             if (bucket.latestDiscountValue > 0.0) {
               this.triggmebody.trigg_purchase.push(
