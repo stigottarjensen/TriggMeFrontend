@@ -30,7 +30,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     token: '',
     discount_level: 2.0,
     average_purchase_count: 50,
-    innkjopspris_prosent: 53.0,
+    innkjopspris_prosent: 50.0,
     average_purchase: 500.0,
     triggme_fee_prosent: 10.0,
     humaniter_fee_prosent: 10.0,
@@ -41,7 +41,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     triggme_avgift: [0],
     humaniter_andel: [0],
     last_cost: [0],
-    trigg_purchase_percent:[0],
+    trigg_purchase_percent: [0],
     total_acc_trigg_fee: 0.0,
     total_acc_humanitarian: 0.0,
     qrcode: [{}],
@@ -96,8 +96,8 @@ export class AppComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     this.triggmebody = JSON.parse(JSON.stringify(this.init_triggmebody));
     this.triggmebody.currency = this.currencySymbols[0];
-    this.simulate_count = 100;
-    this.getBuckets();
+    this.simulate_count = 500;
+    this.setUp();
   }
 
   host = 'http://localhost:8778';
@@ -105,13 +105,14 @@ export class AppComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     const url = window.location.href;
     if (!url.includes('4200')) this.host = '';
+    this.triggmebody = JSON.parse(JSON.stringify(this.init_triggmebody));
   }
 
   currencyChange(): void {
     if ('$ £ €'.includes(this.triggmebody.currency))
       this.triggmebody.average_purchase = 50;
     else this.triggmebody.average_purchase = 500;
-    this.getBuckets();
+    this.setUp();
   }
 
   login(): void {
@@ -138,15 +139,18 @@ export class AppComponent implements OnInit, AfterViewInit {
           this.triggmebody = JSON.parse(JSON.stringify(this.init_triggmebody));
           this.triggmebody.token = this.token;
           this.sessionTimeout();
-          this.getBuckets();
+          this.setUp();
         });
     }
   }
 
   teller: number = 0;
+  purchaseTimeoutHandle: any[] = [];
 
-  simulatePurchase(): void {
+  initTriggmebody():void {
     this.triggmebody.total_purchase = 0.0;
+    this.triggmebody.total_acc_trigg_fee = 0.0;
+    this.triggmebody.total_acc_humanitarian = 0.0;
     this.triggmebody.tilgodelapp = [];
     this.triggmebody.triggme_avgift = [];
     this.triggmebody.trigg_purchase = [];
@@ -156,6 +160,11 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.triggmebody.qrcode = [];
     this.triggmebody.trigg_purchase_percent = [];
     this.teller = 0;
+    this.count_percent=0;
+  }
+
+  simulatePurchase(): void {
+    this.initTriggmebody();
     let buck = [];
     let low = 0.0;
     let high = this.maxAmount;
@@ -168,15 +177,17 @@ export class AppComponent implements OnInit, AfterViewInit {
       low = buck[0].purchaseLimitLow;
       high = buck[0].purchaseLimitHigh;
     }
-    this.getBuckets();
+    this.setUp();
 
     for (let i = 0; i < this.simulate_count; i++) {
-      setTimeout(() => {
-        const ra = Math.random();
-        const p = Math.floor((high - low) * ra + low);
-        this.teller++;
-        this.buySomething(p);
-      }, 30 * i);
+      this.purchaseTimeoutHandle.push(
+        setTimeout(() => {
+          const ra = Math.random();
+          const p = Math.floor((high - low) * ra + low);
+          this.teller++;
+          this.buySomething(p);
+        }, 30 * i)
+      );
     }
   }
 
@@ -204,7 +215,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       })
       .subscribe((result: any) => {
         this.sessionTimeout();
-        
+
         if (result.error) {
           this.token = null;
           return;
@@ -239,7 +250,8 @@ export class AppComponent implements OnInit, AfterViewInit {
             this.triggmebody.total_acc_trigg_fee = bucket.totalAccTriggFee;
             this.triggmebody.total_acc_humanitarian =
               bucket.totalAccHumanitarian;
-            this.triggmebody.average_purchase_count= bucket.averagePurchaseCount;
+            this.triggmebody.average_purchase_count =
+              bucket.averagePurchaseCount;
 
             if (bucket.latestDiscountValue > 0.0) {
               this.triggmebody.trigg_purchase.push(
@@ -269,14 +281,20 @@ export class AppComponent implements OnInit, AfterViewInit {
               this.triggmebody.triggme_avgift.push(bucket.triggMeFeeValue);
               this.triggmebody.humaniter_andel.push(bucket.humanitarianValue);
               this.triggmebody.last_cost.push(bucket.lastDiscountCost);
-              this.triggmebody.trigg_purchase_percent.push(bucket.triggPurchasePercent);
+              this.triggmebody.trigg_purchase_percent.push(
+                bucket.triggPurchasePercent
+              );
             }
           }
         });
       });
   }
 
-  getBuckets(): void {
+  setUp(): void {
+    for (var i = 0; i < this.purchaseTimeoutHandle.length; i++)
+      clearTimeout(this.purchaseTimeoutHandle[i]);
+    this.purchaseTimeoutHandle = [];
+    this.initTriggmebody();
     this.http
       .post(this.host + this.webApp + '/demo/setup', this.triggmebody, {
         headers: this.httpHeaders,
@@ -292,7 +310,9 @@ export class AppComponent implements OnInit, AfterViewInit {
         }
         this.bucketInput = result['buckets'];
         this.triggmebody.average_purchase_count =
-          this.bucketInput[0].averagePurchaseCount;
+          result.averagePurchaseCount;
+          console.log(result,this.triggmebody);
+          
         this.bucketInput.forEach((bucket: any) => {
           bucket.buyCount = 0;
           bucket.progress = 0;

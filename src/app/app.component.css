@@ -1,10 +1,25 @@
 .green {
-    background-color: rgb(214, 241, 233);
+    background-color: rgb(203, 240, 229);
     padding: 3px;
     text-align: right;
     width:125px;
     min-width: 125px;
     max-width: 125px;
+}
+
+body {
+    font-size: 14px;;
+}
+select, button {
+    padding: 4px;
+}
+
+h2 {
+    margin: 10px;
+    padding: 10px;
+    background-color: rgb(246, 239, 230);
+    width: fit-content;
+    border-radius: 5px;
 }
 
 input {
@@ -40,6 +55,8 @@ img {
 
 .label {
     text-align: left;
+    padding: 3px;
+    padding-left: 12px;
 }
 
 .qr_label {
@@ -50,6 +67,8 @@ img {
     max-width: 190px;
     left:0px;
     background-color: white;
+    padding: 3px;
+    padding-left: 12px;
 }
 
 td {

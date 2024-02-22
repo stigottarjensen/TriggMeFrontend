@@ -1,3 +1,4 @@
+<h2>Test av TriggMe i deres Butikk/Tjenesteyting</h2>
 <div *ngIf="!token">
   <p>User: <input type="text" [(ngModel)]="username"></p>
   <p>Pass: <input type="password" [(ngModel)]="password" (keyup.enter)="login()"></p>
@@ -18,27 +19,27 @@
       <td rowspan="4"><img src='{{"assets/"+triggmebody.currency+".png"}}'/></td>
     </tr>
     <tr>
-      <td class="label">Rabatt %</td>
-      <td><input type="number" [(ngModel)]="triggmebody.discount_level" (change)="getBuckets()"></td>
+      <td class="label">Partners valgte rabatt i %</td>
+      <td><input type="number" [(ngModel)]="triggmebody.discount_level" (change)="setUp()"></td>
     </tr>
     <tr>
       <td class="label">Gjennomsnitt antall handler</td>
       <td class="green">{{triggmebody.average_purchase_count}}</td>
     </tr>
     <tr>
-      <td class="label">Innkjøpspris %</td>
-      <td><input type="number" [(ngModel)]="triggmebody.innkjopspris_prosent" (change)="getBuckets()"></td>
+      <td class="label">Innkjøpspris i % i forhold til utsalgspris</td>
+      <td><input type="number" [(ngModel)]="triggmebody.innkjopspris_prosent" (change)="setUp()"></td>
     </tr>
     <tr>
       <td class="label">Test kjøpesum</td>
-      <td><input type="number" data-type="currency" [(ngModel)]="triggmebody.average_purchase" (change)="getBuckets()"></td>
+      <td><input type="number" data-type="currency" [(ngModel)]="triggmebody.average_purchase" (change)="setUp()"></td>
     </tr>
     <tr>
-      <td class="label">Triggme avgift % </td>
+      <td class="label">TriggMe avgift % </td>
       <td><input type="number" [(ngModel)]="triggmebody.humaniter_fee_prosent"></td>
     </tr>
     <tr>
-      <td class="label">Humanitær %</td>
+      <td class="label">Humanitær avgift %</td>
       <td><input type="number" [(ngModel)]="triggmebody.triggme_fee_prosent"></td>
     </tr>
     <tr>
@@ -56,11 +57,11 @@
       <td class="green">{{triggmebody.currency}} {{triggmebody.total_purchase | number:'1.2-2'}}</td>
     </tr>
     <tr>
-      <td class="label">Total triggfee</td>
+      <td class="label">TriggMe avgift av totalomsetningen</td>
       <td class="green">{{triggmebody.currency}} {{triggmebody.total_acc_trigg_fee| number:'1.2-2'}}</td>
     </tr>
     <tr>
-      <td class="label">Total humanitær</td>
+      <td class="label">Humanitær avgift av totalomsetningen</td>
       <td class="green">{{triggmebody.currency}} {{triggmebody.total_acc_humanitarian| number:'1.2-2'}}</td>
     </tr>
   </table>
@@ -71,36 +72,36 @@
       <td class="green" *ngFor="let item of triggmebody.trigg_purchase">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
     </tr>
     <tr>
-      <td class="qr_label">Tilgodelapp beløp</td>
+      <td class="qr_label">Beløp på tilgodelapp</td>
       <td class="green" *ngFor="let item of triggmebody.tilgodelapp">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
     </tr>
     <tr>
-      <td class="qr_label">Triggme avgift beløp</td>
+      <td class="qr_label">TriggMe avgifts beløp</td>
       <td class="green" *ngFor="let item of triggmebody.triggme_avgift">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
     </tr>
     <tr>
-      <td class="qr_label">Humanitært beløp</td>
+      <td class="qr_label">Humanitært avgifts beløp</td>
       <td class="green" *ngFor="let item of triggmebody.humaniter_andel">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
     </tr>
     <tr>
-      <td class="qr_label">Kostnad </td>
+      <td class="qr_label">Reell kostnad for Partner </td>
       <td class="green" *ngFor="let item of triggmebody.last_cost">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
     </tr>
     <tr>
-      <td class="qr_label">Total kjøp</td>
+      <td class="qr_label">Total omsetning på denne tilgodelappen</td>
       <td class="green" *ngFor="let item of triggmebody.trigg_total_purchase">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
     </tr>
     <tr>
-      <td class="qr_label">Triggkjøp% av kjøpsbeløp tilgodelapp</td>
+      <td class="qr_label">Reel kostnad for denne tilgodelappen i %</td>
       <td class="green" *ngFor="let item of triggmebody.trigg_purchase_percent"> {{item| number:'1.2-2'}} % </td>
     </tr>
     <tr>
-      <td class="qr_label">QRCode</td>
+      <td class="qr_label">QR-Code</td>
       <td class="green" *ngFor="let item of triggmebody.qrcode"> <img [src]="item">
       </td>
     </tr>
   </table></div>
-  <p><button (click)="getBuckets()" *ngIf="userAccess<3">Lag bøtter</button></p>
+  <p><button (click)="setUp()">Nullstill</button></p>
   <button (click)="showBuckets=!showBuckets" *ngIf="userAccess<3">Vis bøtter</button>
   <table *ngIf="showBuckets && userAccess<3">
     <!-- <th *ngFor="let item of bucketInput[0] | keyvalue" >{{item.key}}</th> -->
