@@ -186,7 +186,7 @@ export class AppComponent implements OnInit, AfterViewInit {
           const p = Math.floor((high - low) * ra + low);
           this.teller++;
           this.buySomething(p);
-        }, 30 * i)
+        }, 7 * i)
       );
     }
   }
