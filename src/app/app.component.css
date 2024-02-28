@@ -71,6 +71,12 @@ img {
     padding-left: 12px;
 }
 
+.pretext {
+    width:590px;
+    min-width: 590px;
+    max-width: 590px;
+}
+
 td {
     text-align: right;
     border-style: solid;

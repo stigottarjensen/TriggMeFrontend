@@ -100,6 +100,11 @@
       <td class="green" *ngFor="let item of triggmebody.qrcode"> <img [src]="item">
       </td>
     </tr>
+    <!-- <tr>
+      <td class="qr_label">JSON</td>
+      <td class="pretext" *ngFor="let item of triggmebody.bucket"><pre>{{item}}</pre>
+      </td>
+    </tr> -->
   </table></div>
   <p><button (click)="setUp()">Nullstill</button></p>
   <button (click)="showBuckets=!showBuckets" *ngIf="userAccess<3">Vis bøtter</button>

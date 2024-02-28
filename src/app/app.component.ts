@@ -45,6 +45,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     total_acc_trigg_fee: 0.0,
     total_acc_humanitarian: 0.0,
     qrcode: [{}],
+    bucket: ['']
   };
 
   triggmebody = JSON.parse(JSON.stringify(this.init_triggmebody));
@@ -159,6 +160,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.triggmebody.last_cost = [];
     this.triggmebody.qrcode = [];
     this.triggmebody.trigg_purchase_percent = [];
+    this.triggmebody.bucket = [];
     this.teller = 0;
     this.count_percent=0;
   }
@@ -193,17 +195,15 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   count_percent = 0;
 
-  buySomething(p?: number): void {
-    if (!p || p < this.minimumBucketAmount) return;
-    let lp = this.last_purchase;
-    if (p) {
+  buySomething(p: number): void {
+    let
       lp = {
         lastPurchase: p,
         token: this.token,
         discountLevel: this.triggmebody.discount_level,
         innkjopsProsent: this.triggmebody.innkjopspris_prosent,
       };
-    }
+    
     this.last_purchase = lp;
     this.triggmebody.total_purchase += this.last_purchase.lastPurchase;
     this.http
@@ -255,7 +255,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
             if (bucket.latestDiscountValue > 0.0) {
               this.triggmebody.trigg_purchase.push(
-                this.last_purchase.lastPurchase
+                bucket.lastPurchase
               );
               this.triggmebody.trigg_total_purchase.push(
                 bucket.triggTotalPurchase
@@ -284,6 +284,7 @@ export class AppComponent implements OnInit, AfterViewInit {
               this.triggmebody.trigg_purchase_percent.push(
                 bucket.triggPurchasePercent
               );
+              this.triggmebody.bucket.push(JSON.stringify(bucket,null,2));
             }
           }
         });
