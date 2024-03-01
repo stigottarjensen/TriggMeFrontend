@@ -45,7 +45,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     total_acc_trigg_fee: 0.0,
     total_acc_humanitarian: 0.0,
     qrcode: [{}],
-    bucket: ['']
+    bucket: [''],
   };
 
   triggmebody = JSON.parse(JSON.stringify(this.init_triggmebody));
@@ -121,7 +121,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     if (this.username.length > 1 && this.password.length > 1) {
       this.http
         .post(
-          this.host + this.webApp + '/demo',
+          this.host + this.webApp + '/demo'+this.getRandomUrl(),
           { user: this.username, pass: this.password },
           {
             headers: this.httpHeaders,
@@ -148,7 +148,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   teller: number = 0;
   purchaseTimeoutHandle: any[] = [];
 
-  initTriggmebody():void {
+  initTriggmebody(): void {
     this.triggmebody.total_purchase = 0.0;
     this.triggmebody.total_acc_trigg_fee = 0.0;
     this.triggmebody.total_acc_humanitarian = 0.0;
@@ -162,7 +162,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.triggmebody.trigg_purchase_percent = [];
     this.triggmebody.bucket = [];
     this.teller = 0;
-    this.count_percent=0;
+    this.count_percent = 0;
   }
 
   simulatePurchase(): void {
@@ -196,18 +196,17 @@ export class AppComponent implements OnInit, AfterViewInit {
   count_percent = 0;
 
   buySomething(p: number): void {
-    let
-      lp = {
-        lastPurchase: p,
-        token: this.token,
-        discountLevel: this.triggmebody.discount_level,
-        innkjopsProsent: this.triggmebody.innkjopspris_prosent,
-      };
-    
+    let lp = {
+      lastPurchase: p,
+      token: this.token,
+      discountLevel: this.triggmebody.discount_level,
+      innkjopsProsent: this.triggmebody.innkjopspris_prosent,
+    };
+
     this.last_purchase = lp;
     this.triggmebody.total_purchase += this.last_purchase.lastPurchase;
     this.http
-      .post(this.host + this.webApp + '/demo/buy', lp, {
+      .post(this.host + this.webApp + '/demo/buy'+this.getRandomUrl(), lp, {
         headers: this.httpHeaders,
         responseType: 'json',
         observe: 'body',
@@ -254,9 +253,7 @@ export class AppComponent implements OnInit, AfterViewInit {
               bucket.averagePurchaseCount;
 
             if (bucket.latestDiscountValue > 0.0) {
-              this.triggmebody.trigg_purchase.push(
-                bucket.lastPurchase
-              );
+              this.triggmebody.trigg_purchase.push(bucket.lastPurchase);
               this.triggmebody.trigg_total_purchase.push(
                 bucket.triggTotalPurchase
               );
@@ -266,7 +263,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 token: this.token,
               };
               this.http
-                .post(this.host + this.webApp + '/demo/qrcode', qrcontent, {
+                .post(this.host + this.webApp + '/demo/qrcode'+this.getRandomUrl(), qrcontent, {
                   headers: this.httpHeaders,
                   responseType: 'text',
                   observe: 'body',
@@ -284,7 +281,7 @@ export class AppComponent implements OnInit, AfterViewInit {
               this.triggmebody.trigg_purchase_percent.push(
                 bucket.triggPurchasePercent
               );
-              this.triggmebody.bucket.push(JSON.stringify(bucket,null,2));
+              this.triggmebody.bucket.push(JSON.stringify(bucket, null, 2));
             }
           }
         });
@@ -297,7 +294,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.purchaseTimeoutHandle = [];
     this.initTriggmebody();
     this.http
-      .post(this.host + this.webApp + '/demo/setup', this.triggmebody, {
+      .post(this.host + this.webApp + '/demo/setup'+this.getRandomUrl(), this.triggmebody, {
         headers: this.httpHeaders,
         responseType: 'json',
         observe: 'body',
@@ -310,10 +307,9 @@ export class AppComponent implements OnInit, AfterViewInit {
           return;
         }
         this.bucketInput = result['buckets'];
-        this.triggmebody.average_purchase_count =
-          result.averagePurchaseCount;
-          console.log(result,this.triggmebody);
-          
+        this.triggmebody.average_purchase_count = result.averagePurchaseCount;
+        console.log(result, this.triggmebody);
+
         this.bucketInput.forEach((bucket: any) => {
           bucket.buyCount = 0;
           bucket.progress = 0;
@@ -322,5 +318,15 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.maxAmount =
           this.bucketInput[this.bucketInput.length - 1].purchaseLimitHigh;
       });
+  }
+
+  getRandomUrl(): string {
+    let s = '/';
+    for (let i = 0; i < 17; i++) {
+      const t = Math.floor(Math.random() * 26) + 97;
+      s += String.fromCharCode(t);
+    }
+    console.log(s);
+    return s;
   }
 }
