@@ -2,7 +2,7 @@ import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 import { DomSanitizer } from '@angular/platform-browser';
-import * as forge from 'node-forge'
+import * as forge from 'node-forge';
 // ng build --base-href=/triggdemo/
 //sudo /Users/stigottarjensen/apache-tomcat-10.1.16/bin/startup.sh
 //sudo /Users/stigottarjensen/apache-tomcat-10.1.16/bin/shutdown.sh
@@ -23,6 +23,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   showBuckets = true;
   qrCode = '';
   progress = 0;
+  show_qr = null;
 
   userAccess: number = 100;
 
@@ -114,7 +115,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     if ('$ £ €'.includes(this.triggmebody.currency))
       this.triggmebody.average_purchase = 50;
     else this.triggmebody.average_purchase = 500;
-    this.setUp(); 
+    this.setUp();
   }
 
   login(): void {
@@ -122,7 +123,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     if (this.username.length > 1 && this.password.length > 1) {
       this.http
         .post(
-          this.host + this.webApp + '/demo'+this.getRandomUrl(),
+          this.host + this.webApp + '/demo' + this.getRandomUrl(),
           { user: this.username, pass: this.password },
           {
             headers: this.httpHeaders,
@@ -206,7 +207,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     this.last_purchase = lp;
     this.http
-      .post(this.host + this.webApp + '/demo/buy'+this.getRandomUrl(), lp, {
+      .post(this.host + this.webApp + '/demo/buy' + this.getRandomUrl(), lp, {
         headers: this.httpHeaders,
         responseType: 'json',
         observe: 'body',
@@ -214,12 +215,19 @@ export class AppComponent implements OnInit, AfterViewInit {
       })
       .subscribe((result: any) => {
         this.sessionTimeout();
-        
+        console.log(result);
+
         if (result.error) {
           this.token = null;
           return;
         }
 
+        if (result.lastAllowanceSlip) {
+          const qr = this.sanitizer.bypassSecurityTrustResourceUrl(
+            result.lastAllowanceSlip.QRCode
+          );
+          this.triggmebody.qrcode.push(qr);
+        }
         this.triggmebody.total_purchase = result.totalPurchaseAmount;
         this.count_percent = Math.round(
           (100 * this.teller) / this.simulate_count
@@ -233,7 +241,7 @@ export class AppComponent implements OnInit, AfterViewInit {
               bucket[item + 'Hot'] = false;
             }
           });
-          
+
           if (result.bucketId === bucket.bucketId) {
             const a = Object.keys(result);
             bucket.buyCount++;
@@ -246,7 +254,8 @@ export class AppComponent implements OnInit, AfterViewInit {
                 bucket[item] = result[item];
               }
             });
-            bucket.progress = '' +
+            bucket.progress =
+              '' +
               Math.round((bucket.triggSaldo * 100) / bucket.purchaseLimitHigh);
             this.triggmebody.total_acc_trigg_fee = bucket.totalAccTriggFee;
             this.triggmebody.total_acc_humanitarian =
@@ -254,36 +263,43 @@ export class AppComponent implements OnInit, AfterViewInit {
             this.triggmebody.average_purchase_count =
               bucket.averagePurchaseCount;
 
-            if (result.lastAllowanceSlip) {  
-              this.triggmebody.trigg_purchase.push(bucket.lastAllowanceSlip.amount);
-              this.triggmebody.trigg_total_purchase.push(
-                bucket.triggTotalPurchase
+            if (result.lastAllowanceSlip) {
+              this.triggmebody.trigg_purchase.push(
+                result.lastAllowanceSlip.amount
               );
-              this.triggmebody.tilgodelapp.push(bucket.lastAllowanceSlip.allowanceAmount);
+              this.triggmebody.trigg_total_purchase.push(
+                result.triggTotalPurchase
+              );
+              this.triggmebody.tilgodelapp.push(
+                result.lastAllowanceSlip.allowanceAmount
+              );
               const qrcontent = {
-                qrcode_content: bucket.lastAllowanceSlip.QRLabel,
+                qrcode_content: result.lastAllowanceSlip.QRLabel,
                 token: this.token,
               };
-              this.http
-                .post(this.host + this.webApp + '/demo/qrcode'+this.getRandomUrl(), qrcontent, {
-                  headers: this.httpHeaders,
-                  responseType: 'text',
-                  observe: 'body',
-                  withCredentials: false,
-                })
-                .subscribe((result: any) => {
-                  this.sessionTimeout();
-                  const qr =
-                    this.sanitizer.bypassSecurityTrustResourceUrl(result);
-                  this.triggmebody.qrcode.push(qr);
-                });
-              this.triggmebody.triggme_avgift.push(bucket.lastAllowanceSlip.triggMeFeeValue);
-              this.triggmebody.humaniter_andel.push(bucket.lastAllowanceSlip.orgFeeValue);
-              this.triggmebody.last_cost.push(bucket.lastAllowanceSlip.realCost);
-              this.triggmebody.trigg_purchase_percent.push(
-                bucket.lastAllowanceSlip.realCostPercent
+              // this.http
+              //   .post(this.host + this.webApp + '/demo/qrcode'+this.getRandomUrl(), qrcontent, {
+              //     headers: this.httpHeaders,
+              //     responseType: 'text',
+              //     observe: 'body',
+              //     withCredentials: false,
+              //   })
+              //   .subscribe((result: any) => {
+              //     this.sessionTimeout();
+              //
+              //   });
+              this.triggmebody.triggme_avgift.push(
+                result.lastAllowanceSlip.triggMeFeeValue
               );
-              this.triggmebody.bucket.push(JSON.stringify(bucket, null, 2));
+              this.triggmebody.humaniter_andel.push(
+                result.lastAllowanceSlip.orgFeeValue
+              );
+              this.triggmebody.last_cost.push(
+                result.lastAllowanceSlip.realCost
+              );
+              this.triggmebody.trigg_purchase_percent.push(
+                result.lastAllowanceSlip.realCostPercent
+              );
             }
           }
         });
@@ -296,12 +312,16 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.purchaseTimeoutHandle = [];
     this.initTriggmebody();
     this.http
-      .post(this.host + this.webApp + '/demo/setup'+this.getRandomUrl(), this.triggmebody, {
-        headers: this.httpHeaders,
-        responseType: 'json',
-        observe: 'body',
-        withCredentials: false,
-      })
+      .post(
+        this.host + this.webApp + '/demo/setup' + this.getRandomUrl(),
+        this.triggmebody,
+        {
+          headers: this.httpHeaders,
+          responseType: 'json',
+          observe: 'body',
+          withCredentials: false,
+        }
+      )
       .subscribe((result: any) => {
         this.sessionTimeout();
         if (result.error) {

@@ -16,7 +16,7 @@
             currencyNames[i] }}</option>
         </select>
       </td>
-      <td rowspan="4"><img src='{{"assets/"+triggmebody.currency+".png"}}'/></td>
+      <td rowspan="4" class="flag"><img src='{{"assets/"+triggmebody.currency+".png"}}' /></td>
     </tr>
     <tr>
       <td class="label">Partners valgte rabatt i %</td>
@@ -33,6 +33,7 @@
     <tr>
       <td class="label">Test kjøpesum</td>
       <td><input type="number" data-type="currency" [(ngModel)]="triggmebody.average_purchase" (change)="setUp()"></td>
+      <td  rowspan="7"><img [src]="show_qr" *ngIf="show_qr" class="show-qr"></td>
     </tr>
     <tr>
       <td class="label">TriggMe avgift % </td>
@@ -65,47 +66,51 @@
       <td class="green">{{triggmebody.currency}} {{triggmebody.total_acc_humanitarian| number:'1.2-2'}}</td>
     </tr>
   </table>
+
   <div class="qr_wrapper" *ngIf="triggmebody.trigg_purchase.length>0 && triggmebody.trigg_purchase[0]>0.0">
-  <table  class="qr_table">
-    <tr>
-      <td class="qr_label">Kjøpsbeløp ved tilgodelapp</td>
-      <td class="green" *ngFor="let item of triggmebody.trigg_purchase">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
-    </tr>
-    <tr>
-      <td class="qr_label">Beløp på tilgodelapp</td>
-      <td class="green" *ngFor="let item of triggmebody.tilgodelapp">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
-    </tr>
-    <tr>
-      <td class="qr_label">TriggMe avgifts beløp</td>
-      <td class="green" *ngFor="let item of triggmebody.triggme_avgift">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
-    </tr>
-    <tr>
-      <td class="qr_label">IL/Org avgifts beløp</td>
-      <td class="green" *ngFor="let item of triggmebody.humaniter_andel">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
-    </tr>
-    <tr>
-      <td class="qr_label">Reell kostnad for Partner </td>
-      <td class="green" *ngFor="let item of triggmebody.last_cost">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
-    </tr>
-    <tr>
-      <td class="qr_label">Total omsetning på denne tilgodelappen</td>
-      <td class="green" *ngFor="let item of triggmebody.trigg_total_purchase">{{triggmebody.currency}} {{item| number:'1.2-2'}} </td>
-    </tr>
-    <tr>
-      <td class="qr_label">Reell kostnad for denne tilgodelappen i %</td>
-      <td class="green" *ngFor="let item of triggmebody.trigg_purchase_percent"> {{item| number:'1.2-2'}} % </td>
-    </tr>
-    <tr>
-      <td class="qr_label">QR-Code</td>
-      <td class="green" *ngFor="let item of triggmebody.qrcode"> <img [src]="item">
-      </td>
-    </tr>
-    <!-- <tr>
-      <td class="qr_label">JSON</td>
-      <td class="pretext" *ngFor="let item of triggmebody.bucket"><pre>{{item}}</pre>
-      </td>
-    </tr> -->
-  </table></div>
+    <table class="qr_table">
+      <tr>
+        <td class="qr_label">Kjøpsbeløp ved tilgodelapp</td>
+        <td class="green" *ngFor="let item of triggmebody.trigg_purchase">{{triggmebody.currency}} {{item|
+          number:'1.2-2'}} </td>
+      </tr>
+      <tr>
+        <td class="qr_label">Beløp på tilgodelapp</td>
+        <td class="green" *ngFor="let item of triggmebody.tilgodelapp">{{triggmebody.currency}} {{item| number:'1.2-2'}}
+        </td>
+      </tr>
+      <tr>
+        <td class="qr_label">TriggMe avgifts beløp</td>
+        <td class="green" *ngFor="let item of triggmebody.triggme_avgift">{{triggmebody.currency}} {{item|
+          number:'1.2-2'}} </td>
+      </tr>
+      <tr>
+        <td class="qr_label">IL/Org avgifts beløp</td>
+        <td class="green" *ngFor="let item of triggmebody.humaniter_andel">{{triggmebody.currency}} {{item|
+          number:'1.2-2'}} </td>
+      </tr>
+      <tr>
+        <td class="qr_label">Reell kostnad for Partner </td>
+        <td class="green" *ngFor="let item of triggmebody.last_cost">{{triggmebody.currency}} {{item| number:'1.2-2'}}
+        </td>
+      </tr>
+      <tr>
+        <td class="qr_label">Total omsetning på denne tilgodelappen</td>
+        <td class="green" *ngFor="let item of triggmebody.trigg_total_purchase">{{triggmebody.currency}} {{item|
+          number:'1.2-2'}} </td>
+      </tr>
+      <tr>
+        <td class="qr_label">Reell kostnad for denne tilgodelappen i %</td>
+        <td class="green" *ngFor="let item of triggmebody.trigg_purchase_percent"> {{item| number:'1.2-2'}} % </td>
+      </tr>
+      <tr>
+        <td class="qr_label">QR-Code</td>
+        <td class="green" *ngFor="let item of triggmebody.qrcode" (mouseover)="show_qr=item" (mouseout)="show_qr=null">
+          <img [src]="item">
+        </td>
+      </tr>
+    </table>
+  </div>
   <p><button (click)="setUp()">Nullstill</button></p>
   <button (click)="showBuckets=!showBuckets" *ngIf="userAccess<3">Vis bøtter</button>
   <table *ngIf="showBuckets && userAccess<3">
@@ -129,14 +134,16 @@
         <td>{{bucket.bucketNr}}</td>
         <td [ngClass]="{'veryhot':bucket.lastPurchaseHot , 'verynormal': !bucket.lastPurchaseHot }">{{bucket.buyCount}}
         </td>
-        <td [ngClass]="{'hot':bucket.lastPurchaseHot , 'normal': !bucket.lastPurchaseHot }">{{triggmebody.currency}} {{bucket.lastPurchase| number:'1.2-2'}}</td>
+        <td [ngClass]="{'hot':bucket.lastPurchaseHot , 'normal': !bucket.lastPurchaseHot }">{{triggmebody.currency}}
+          {{bucket.lastPurchase| number:'1.2-2'}}</td>
         <td>
           <div class="progress-container">
             <div class="progress-bar" [ngStyle]="{'width.%':bucket.progress}"></div>
             <div class="progress-text">{{triggmebody.currency}} {{bucket.triggSaldo| number:'1.2-2'}}</div>
           </div>
         </td>
-        <td [ngClass]="{'hot':bucket.triggSaldoHot , 'normal': !bucket.triggSaldoHot }">{{triggmebody.currency}} {{bucket.lastDiscountAmount| number:'1.2-2'}}
+        <td [ngClass]="{'hot':bucket.triggSaldoHot , 'normal': !bucket.triggSaldoHot }">{{triggmebody.currency}}
+          {{bucket.lastDiscountAmount| number:'1.2-2'}}
         </td>
         <td [ngClass]="{'trigg':bucket.humanitarianValueHot , 'triggnormal': !bucket.humanitarianValueHot }">
           {{triggmebody.currency}} {{bucket.triggMeFeeValue| number:'1.2-2'}}</td>
