@@ -2,6 +2,7 @@ import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 import { DomSanitizer } from '@angular/platform-browser';
+import * as forge from 'node-forge'
 // ng build --base-href=/triggdemo/
 //sudo /Users/stigottarjensen/apache-tomcat-10.1.16/bin/startup.sh
 //sudo /Users/stigottarjensen/apache-tomcat-10.1.16/bin/shutdown.sh
@@ -113,7 +114,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     if ('$ £ €'.includes(this.triggmebody.currency))
       this.triggmebody.average_purchase = 50;
     else this.triggmebody.average_purchase = 500;
-    this.setUp();
+    this.setUp(); 
   }
 
   login(): void {
@@ -204,7 +205,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     };
 
     this.last_purchase = lp;
-    this.triggmebody.total_purchase += this.last_purchase.lastPurchase;
     this.http
       .post(this.host + this.webApp + '/demo/buy'+this.getRandomUrl(), lp, {
         headers: this.httpHeaders,
@@ -214,11 +214,13 @@ export class AppComponent implements OnInit, AfterViewInit {
       })
       .subscribe((result: any) => {
         this.sessionTimeout();
-
+        
         if (result.error) {
           this.token = null;
           return;
         }
+
+        this.triggmebody.total_purchase = result.totalPurchaseAmount;
         this.count_percent = Math.round(
           (100 * this.teller) / this.simulate_count
         );
@@ -231,6 +233,7 @@ export class AppComponent implements OnInit, AfterViewInit {
               bucket[item + 'Hot'] = false;
             }
           });
+          
           if (result.bucketId === bucket.bucketId) {
             const a = Object.keys(result);
             bucket.buyCount++;
@@ -243,8 +246,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 bucket[item] = result[item];
               }
             });
-            bucket.progress =
-              '' +
+            bucket.progress = '' +
               Math.round((bucket.triggSaldo * 100) / bucket.purchaseLimitHigh);
             this.triggmebody.total_acc_trigg_fee = bucket.totalAccTriggFee;
             this.triggmebody.total_acc_humanitarian =
@@ -252,14 +254,14 @@ export class AppComponent implements OnInit, AfterViewInit {
             this.triggmebody.average_purchase_count =
               bucket.averagePurchaseCount;
 
-            if (bucket.latestDiscountValue > 0.0) {
-              this.triggmebody.trigg_purchase.push(bucket.lastPurchase);
+            if (result.lastAllowanceSlip) {  
+              this.triggmebody.trigg_purchase.push(bucket.lastAllowanceSlip.amount);
               this.triggmebody.trigg_total_purchase.push(
                 bucket.triggTotalPurchase
               );
-              this.triggmebody.tilgodelapp.push(bucket.latestDiscountValue);
+              this.triggmebody.tilgodelapp.push(bucket.lastAllowanceSlip.allowanceAmount);
               const qrcontent = {
-                qrcode_content: 'Tilgodelapp kr ' + bucket.latestDiscountValue,
+                qrcode_content: bucket.lastAllowanceSlip.QRLabel,
                 token: this.token,
               };
               this.http
@@ -275,11 +277,11 @@ export class AppComponent implements OnInit, AfterViewInit {
                     this.sanitizer.bypassSecurityTrustResourceUrl(result);
                   this.triggmebody.qrcode.push(qr);
                 });
-              this.triggmebody.triggme_avgift.push(bucket.triggMeFeeValue);
-              this.triggmebody.humaniter_andel.push(bucket.humanitarianValue);
-              this.triggmebody.last_cost.push(bucket.lastDiscountCost);
+              this.triggmebody.triggme_avgift.push(bucket.lastAllowanceSlip.triggMeFeeValue);
+              this.triggmebody.humaniter_andel.push(bucket.lastAllowanceSlip.orgFeeValue);
+              this.triggmebody.last_cost.push(bucket.lastAllowanceSlip.realCost);
               this.triggmebody.trigg_purchase_percent.push(
-                bucket.triggPurchasePercent
+                bucket.lastAllowanceSlip.realCostPercent
               );
               this.triggmebody.bucket.push(JSON.stringify(bucket, null, 2));
             }
@@ -308,7 +310,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         }
         this.bucketInput = result['buckets'];
         this.triggmebody.average_purchase_count = result.averagePurchaseCount;
-        console.log(result, this.triggmebody);
 
         this.bucketInput.forEach((bucket: any) => {
           bucket.buyCount = 0;
@@ -326,7 +327,6 @@ export class AppComponent implements OnInit, AfterViewInit {
       const t = Math.floor(Math.random() * 26) + 97;
       s += String.fromCharCode(t);
     }
-    console.log(s);
     return s;
   }
 }
