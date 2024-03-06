@@ -33,7 +33,13 @@
     <tr>
       <td class="label">Test kjøpesum</td>
       <td><input type="number" data-type="currency" [(ngModel)]="triggmebody.average_purchase" (change)="setUp()"></td>
-      <td  rowspan="7"><img [src]="show_qr" *ngIf="show_qr" class="show-qr"></td>
+      <td rowspan="7">
+        <div class="show-qr"><img [src]="show_qr" *ngIf="show_qr" class="show-qr">
+          <div *ngIf="!show_qr"><br><br>
+            <h2>QR Code</h2>
+          </div>
+        </div>
+      </td>
     </tr>
     <tr>
       <td class="label">TriggMe avgift % </td>
@@ -105,7 +111,8 @@
       </tr>
       <tr>
         <td class="qr_label">QR-Code</td>
-        <td class="green" *ngFor="let item of triggmebody.qrcode" (mouseover)="show_qr=item" (mouseout)="show_qr=null">
+        <td class="green" *ngFor="let item of triggmebody.qrcode" (click)="show_qr=item"
+          [ngClass]="{'alert-border':show_qr===item }">
           <img [src]="item">
         </td>
       </tr>
@@ -114,7 +121,6 @@
   <p><button (click)="setUp()">Nullstill</button></p>
   <button (click)="showBuckets=!showBuckets" *ngIf="userAccess<3">Vis bøtter</button>
   <table *ngIf="showBuckets && userAccess<3">
-    <!-- <th *ngFor="let item of bucketInput[0] | keyvalue" >{{item.key}}</th> -->
     <tr>
       <th>Id</th>
       <th>Nr</th>
