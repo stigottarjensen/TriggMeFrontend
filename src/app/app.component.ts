@@ -244,6 +244,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
           if (result.bucketId === bucket.bucketId) {
             const a = Object.keys(result);
+            
             bucket.buyCount++;
             a.forEach((item: string) => {
               if (item.includes('Hot')) {
@@ -263,7 +264,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             this.triggmebody.average_purchase_count =
               bucket.averagePurchaseCount;
 
-            if (result.lastAllowanceSlip) {
+            if (result.lastAllowanceSlip) {// ny tilgodelapp 
               this.triggmebody.trigg_purchase.push(
                 result.lastAllowanceSlip.amount
               );
@@ -277,17 +278,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 qrcode_content: result.lastAllowanceSlip.QRLabel,
                 token: this.token,
               };
-              // this.http
-              //   .post(this.host + this.webApp + '/demo/qrcode'+this.getRandomUrl(), qrcontent, {
-              //     headers: this.httpHeaders,
-              //     responseType: 'text',
-              //     observe: 'body',
-              //     withCredentials: false,
-              //   })
-              //   .subscribe((result: any) => {
-              //     this.sessionTimeout();
-              //
-              //   });
+              
               this.triggmebody.triggme_avgift.push(
                 result.lastAllowanceSlip.triggMeFeeValue
               );
