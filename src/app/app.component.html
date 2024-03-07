@@ -162,4 +162,13 @@
       </tr>
     </ng-container>
   </table>
+
+  <ag-grid-angular
+  #logGrid
+  [rowData]="rowData"
+  [columnDefs]="colDefs"
+  (gridReady)="onGridReady($event)"
+  class="ag-theme-quartz"
+  style="height: 500px;">
+</ag-grid-angular>
 </div>

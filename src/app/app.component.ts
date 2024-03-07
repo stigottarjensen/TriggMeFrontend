@@ -1,7 +1,10 @@
-import { AfterViewInit, Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-
+import { AgGridAngular } from 'ag-grid-angular';
+import { ColDef } from 'ag-grid-community';
 import { DomSanitizer } from '@angular/platform-browser';
+// import 'ag-grid-community/styles/ag-grid.css';
+// import 'ag-grid-community/styles/ag-theme-quartz.css';
 import * as forge from 'node-forge';
 // ng build --base-href=/triggdemo/
 //sudo /Users/stigottarjensen/apache-tomcat-10.1.16/bin/startup.sh
@@ -24,6 +27,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   qrCode = '';
   progress = 0;
   show_qr = null;
+  @ViewChild('logGrid') grid!: AgGridAngular;
 
   userAccess: number = 100;
 
@@ -88,6 +92,11 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   timeOutHandle: any;
 
+  onGridReady = (event: any) => {
+    this.grid.api.setGridOption('rowData', []);
+    this.rowData = [];
+  };
+
   sessionTimeout(): void {
     if (this.timeOutHandle) clearTimeout(this.timeOutHandle);
     this.timeOutHandle = setTimeout(
@@ -101,6 +110,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.triggmebody.currency = this.currencySymbols[0];
     this.simulate_count = 500;
     this.setUp();
+    this.rowData = [];
   }
 
   host = 'http://localhost:8778';
@@ -169,6 +179,8 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   simulatePurchase(): void {
     this.initTriggmebody();
+    this.rowData = [];
+    this.grid.api.setGridOption('rowData', []);
     let buck = [];
     let low = 0.0;
     let high = this.maxAmount;
@@ -187,8 +199,9 @@ export class AppComponent implements OnInit, AfterViewInit {
       this.purchaseTimeoutHandle.push(
         setTimeout(() => {
           const ra = Math.random();
-          const p = Math.floor((high - low) * ra + low);
+          const p = Math.floor(100*((high - low) * ra + low))/100;
           this.teller++;
+          console.log(p);  
           this.buySomething(p);
         }, 7 * i)
       );
@@ -197,17 +210,36 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   count_percent = 0;
 
+  colDefs: ColDef[] = [
+    { field: 'randurl' },
+    { field: 'amount' },
+    { field: 'sumAmount' },
+    { field: 'discountPercent' },
+    { field: 'discountAmount' },
+    { field: 'sumDiscount' },
+    { field: 'limit' },
+    { field: 'trigged' },
+    { field: 'triggSaldo' },
+    { field: 'sumTilgode' },
+    { field: 'sumTriggFee' },
+    { field: 'sumOrg' },
+  ];
+
+  rowData: any[] = [];
+
   buySomething(p: number): void {
+    const randurl =  this.getRandomUrl();
     let lp = {
       lastPurchase: p,
       token: this.token,
       discountLevel: this.triggmebody.discount_level,
       innkjopsProsent: this.triggmebody.innkjopspris_prosent,
+      randurl: randurl
     };
 
     this.last_purchase = lp;
     this.http
-      .post(this.host + this.webApp + '/demo/buy' + this.getRandomUrl(), lp, {
+      .post(this.host + this.webApp + '/demo/buy' + randurl, lp, {
         headers: this.httpHeaders,
         responseType: 'json',
         observe: 'body',
@@ -215,13 +247,16 @@ export class AppComponent implements OnInit, AfterViewInit {
       })
       .subscribe((result: any) => {
         this.sessionTimeout();
-        console.log(result);
 
         if (result.error) {
           this.token = null;
           return;
         }
 
+        this.rowData.unshift(result.purchaseLog);
+        console.log(this.rowData);
+
+        this.grid.api.setGridOption('rowData', this.rowData);
         if (result.lastAllowanceSlip) {
           const qr = this.sanitizer.bypassSecurityTrustResourceUrl(
             result.lastAllowanceSlip.QRCode
@@ -244,7 +279,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
           if (result.bucketId === bucket.bucketId) {
             const a = Object.keys(result);
-            
+
             bucket.buyCount++;
             a.forEach((item: string) => {
               if (item.includes('Hot')) {
@@ -264,7 +299,8 @@ export class AppComponent implements OnInit, AfterViewInit {
             this.triggmebody.average_purchase_count =
               bucket.averagePurchaseCount;
 
-            if (result.lastAllowanceSlip) {// ny tilgodelapp 
+            if (result.lastAllowanceSlip) {
+              // ny tilgodelapp
               this.triggmebody.trigg_purchase.push(
                 result.lastAllowanceSlip.amount
               );
@@ -278,7 +314,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 qrcode_content: result.lastAllowanceSlip.QRLabel,
                 token: this.token,
               };
-              
+
               this.triggmebody.triggme_avgift.push(
                 result.lastAllowanceSlip.triggMeFeeValue
               );
@@ -302,6 +338,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       clearTimeout(this.purchaseTimeoutHandle[i]);
     this.purchaseTimeoutHandle = [];
     this.initTriggmebody();
+    this.rowData = [];
     this.http
       .post(
         this.host + this.webApp + '/demo/setup' + this.getRandomUrl(),
