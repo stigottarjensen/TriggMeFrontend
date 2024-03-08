@@ -1,11 +1,18 @@
 import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AgGridAngular } from 'ag-grid-angular';
-import { ColDef } from 'ag-grid-community';
+import {
+  ColDef,
+  SizeColumnsToContentStrategy,
+  SizeColumnsToFitGridStrategy,
+  SizeColumnsToFitProvidedWidthStrategy,
+  ValueFormatterParams,
+} from 'ag-grid-community';
 import { DomSanitizer } from '@angular/platform-browser';
 // import 'ag-grid-community/styles/ag-grid.css';
 // import 'ag-grid-community/styles/ag-theme-quartz.css';
 import * as forge from 'node-forge';
+import { AnyCatcher } from 'rxjs/internal/AnyCatcher';
 // ng build --base-href=/triggdemo/
 //sudo /Users/stigottarjensen/apache-tomcat-10.1.16/bin/startup.sh
 //sudo /Users/stigottarjensen/apache-tomcat-10.1.16/bin/shutdown.sh
@@ -37,7 +44,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     discount_level: 2.0,
     average_purchase_count: 50,
     innkjopspris_prosent: 50.0,
-    average_purchase: 500.0,
+    average_purchase: 1.0,
     triggme_fee_prosent: 10.0,
     humaniter_fee_prosent: 10.0,
     total_purchase: 0.0,
@@ -177,6 +184,14 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.count_percent = 0;
   }
 
+  chosenBucketId:any;
+
+  choseBucketId(newId:string) {
+    this.chosenBucketId = newId;
+    this.rowData = this.rowDataList.find((e)=> e.bucketId===this.chosenBucketId)?.rowData;
+    this.grid.api.setGridOption('rowData', this.rowData);
+  }
+
   simulatePurchase(): void {
     this.initTriggmebody();
     this.rowData = [];
@@ -184,6 +199,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     let buck = [];
     let low = 0.0;
     let high = this.maxAmount;
+    this.chosenBucketId = this.bucketInput[0].bucketId;
     if (this.triggmebody.average_purchase >= this.minimumBucketAmount) {
       buck = this.bucketInput.filter(
         (bucket: any) =>
@@ -192,6 +208,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       );
       low = buck[0].purchaseLimitLow;
       high = buck[0].purchaseLimitHigh;
+      this.chosenBucketId = buck[0].bucketId;
     }
     this.setUp();
 
@@ -199,9 +216,9 @@ export class AppComponent implements OnInit, AfterViewInit {
       this.purchaseTimeoutHandle.push(
         setTimeout(() => {
           const ra = Math.random();
-          const p = Math.floor(100*((high - low) * ra + low))/100;
+          const p = Math.floor(100 * ((high - low) * ra + low)) / 100;
           this.teller++;
-          console.log(p);  
+          console.log(p);
           this.buySomething(p);
         }, 7 * i)
       );
@@ -210,31 +227,58 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   count_percent = 0;
 
+  leadZero(t: number): string {
+    if (t > 9) return '' + t;
+    else return '0' + t;
+  }
+  formatTimestamp = (params: ValueFormatterParams) => {
+    let ts = new Date(params.value);
+    const d = this.leadZero(ts.getDate());
+    const m = this.leadZero(ts.getMonth() + 1);
+    const y = this.leadZero(ts.getFullYear());
+    const h = this.leadZero(ts.getHours());
+    const min = this.leadZero(ts.getMinutes());
+    const s = this.leadZero(ts.getSeconds());
+    return d + '.' + m + '.' + y + ' ' + h + ':' + m + ':' + s;
+  };
+
+  moneyFormatter = (params: ValueFormatterParams) => {
+    return this.triggmebody.currency + ' ' + params.value.toFixed(2);
+  };
+
   colDefs: ColDef[] = [
-    { field: 'randurl' },
-    { field: 'amount' },
-    { field: 'sumAmount' },
+    { field: 'timeStamp', valueFormatter: this.formatTimestamp },
+    { field: 'amount', valueFormatter: this.moneyFormatter },
+    { field: 'sumAmount', valueFormatter: this.moneyFormatter },
     { field: 'discountPercent' },
-    { field: 'discountAmount' },
-    { field: 'sumDiscount' },
-    { field: 'limit' },
+    { field: 'discountAmount', valueFormatter: this.moneyFormatter },
+    { field: 'sumDiscount', valueFormatter: this.moneyFormatter },
+    { field: 'limit', valueFormatter: this.moneyFormatter },
     { field: 'trigged' },
-    { field: 'triggSaldo' },
-    { field: 'sumTilgode' },
-    { field: 'sumTriggFee' },
-    { field: 'sumOrg' },
+    { field: 'triggSaldo', valueFormatter: this.moneyFormatter },
+    { field: 'sumTilgode', valueFormatter: this.moneyFormatter },
+    { field: 'sumTriggFee', valueFormatter: this.moneyFormatter },
+    { field: 'sumOrg', valueFormatter: this.moneyFormatter },
   ];
 
-  rowData: any[] = [];
+  autoSizeStrategy:
+    | SizeColumnsToFitGridStrategy
+    | SizeColumnsToFitProvidedWidthStrategy
+    | SizeColumnsToContentStrategy = {
+    type: 'fitCellContents',
+  };
+
+  rowData: any[]|undefined = [];
+  rowDataList:{bucketId:string, rowData:any[]}[] =[];
 
   buySomething(p: number): void {
-    const randurl =  this.getRandomUrl();
+    const randurl = this.getRandomUrl();
     let lp = {
       lastPurchase: p,
       token: this.token,
       discountLevel: this.triggmebody.discount_level,
       innkjopsProsent: this.triggmebody.innkjopspris_prosent,
-      randurl: randurl
+      randurl: randurl,
     };
 
     this.last_purchase = lp;
@@ -253,10 +297,18 @@ export class AppComponent implements OnInit, AfterViewInit {
           return;
         }
 
-        this.rowData.unshift(result.purchaseLog);
-        console.log(this.rowData);
-
+        //this.rowData.unshift(result.purchaseLog);
+       const rElem = this.rowDataList.find((rd) => rd.bucketId===result.bucketId);
+        if (!rElem) {
+          this.rowDataList.push({bucketId:result.bucketId,rowData:[result.purchaseLog]});
+        } else {
+          const i = this.rowDataList.indexOf(rElem);
+          this.rowDataList[i].rowData.unshift(result.purchaseLog);
+        }
+        
+        this.rowData = this.rowDataList.find((e)=> e.bucketId===this.chosenBucketId)?.rowData;
         this.grid.api.setGridOption('rowData', this.rowData);
+
         if (result.lastAllowanceSlip) {
           const qr = this.sanitizer.bypassSecurityTrustResourceUrl(
             result.lastAllowanceSlip.QRCode

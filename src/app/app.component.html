@@ -120,6 +120,12 @@
   </div>
   <p><button (click)="setUp()">Nullstill</button></p>
   <button (click)="showBuckets=!showBuckets" *ngIf="userAccess<3">Vis bøtter</button>
+  <br>
+  <ag-grid-angular #logGrid [rowData]="rowData" [columnDefs]="colDefs" (gridReady)="onGridReady($event)"
+    [autoSizeStrategy]="autoSizeStrategy" class="ag-theme-quartz" style="height: 600px;"
+    *ngIf="showBuckets && userAccess<3">
+  </ag-grid-angular>
+  <br>
   <table *ngIf="showBuckets && userAccess<3">
     <tr>
       <th>Id</th>
@@ -133,10 +139,11 @@
       <th>sum TriggFee</th>
       <th>sum IL/Org</th>
     </tr>
+
     <ng-container *ngFor="let bucket of bucketInput">
       <tr
         *ngIf="triggmebody.average_purchase<minimumBucketAmount || (triggmebody.average_purchase>=bucket.purchaseLimitLow && triggmebody.average_purchase<=bucket.purchaseLimitHigh)">
-        <td>{{bucket.bucketId}}</td>
+        <td (click)="choseBucketId(bucket.bucketId)" [ngClass]="{'strong-border':chosenBucketId===bucket.bucketId}">{{bucket.bucketId}}</td>
         <td>{{bucket.bucketNr}}</td>
         <td [ngClass]="{'veryhot':bucket.lastPurchaseHot , 'verynormal': !bucket.lastPurchaseHot }">{{bucket.buyCount}}
         </td>
@@ -163,12 +170,4 @@
     </ng-container>
   </table>
 
-  <ag-grid-angular
-  #logGrid
-  [rowData]="rowData"
-  [columnDefs]="colDefs"
-  (gridReady)="onGridReady($event)"
-  class="ag-theme-quartz"
-  style="height: 500px;">
-</ag-grid-angular>
 </div>
