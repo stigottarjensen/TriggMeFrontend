@@ -44,7 +44,9 @@ export class AppComponent implements OnInit, AfterViewInit {
     discount_level: 2.0,
     average_purchase_count: 50,
     innkjopspris_prosent: 50.0,
-    average_purchase: 1.0,
+    average_purchase: 500.0,
+    min_purchase: 0.0,
+    max_purchase: 999999999.0,
     triggme_fee_prosent: 10.0,
     humaniter_fee_prosent: 10.0,
     total_purchase: 0.0,
@@ -218,7 +220,6 @@ export class AppComponent implements OnInit, AfterViewInit {
           const ra = Math.random();
           const p = Math.floor(100 * ((high - low) * ra + low)) / 100;
           this.teller++;
-          console.log(p);
           this.buySomething(p);
         }, 7 * i)
       );
@@ -239,7 +240,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     const h = this.leadZero(ts.getHours());
     const min = this.leadZero(ts.getMinutes());
     const s = this.leadZero(ts.getSeconds());
-    return d + '.' + m + '.' + y + ' ' + h + ':' + m + ':' + s;
+    return d + '.' + m + '.' + y + ' ' + h + ':' + min + ':' + s;
   };
 
   moneyFormatter = (params: ValueFormatterParams) => {
