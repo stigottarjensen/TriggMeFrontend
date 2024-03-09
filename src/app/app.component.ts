@@ -115,7 +115,6 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.triggmebody = JSON.parse(JSON.stringify(this.init_triggmebody));
     this.triggmebody.currency = this.currencySymbols[0];
     this.simulate_count = 500;
     this.setUp();
@@ -127,7 +126,6 @@ export class AppComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     const url = window.location.href;
     if (!url.includes('4200')) this.host = '';
-    this.triggmebody = JSON.parse(JSON.stringify(this.init_triggmebody));
   }
 
   currencyChange(): void {
@@ -188,7 +186,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   chosenBucketId:any;
 
-  choseBucketId(newId:string) {
+  chooseBucketId(newId:string) {
     this.chosenBucketId = newId;
     this.rowData = this.rowDataList.find((e)=> e.bucketId===this.chosenBucketId)?.rowData;
     this.grid.api.setGridOption('rowData', this.rowData);

@@ -143,7 +143,7 @@
     <ng-container *ngFor="let bucket of bucketInput">
       <tr
         *ngIf="triggmebody.average_purchase<minimumBucketAmount || (triggmebody.average_purchase>=bucket.purchaseLimitLow && triggmebody.average_purchase<=bucket.purchaseLimitHigh)">
-        <td (click)="choseBucketId(bucket.bucketId)" [ngClass]="{'strong-border':chosenBucketId===bucket.bucketId}">{{bucket.bucketId}}</td>
+        <td (click)="chooseBucketId(bucket.bucketId)" [ngClass]="{'strong-border':chosenBucketId===bucket.bucketId}">{{bucket.bucketId}}</td>
         <td>{{bucket.bucketNr}}</td>
         <td [ngClass]="{'veryhot':bucket.lastPurchaseHot , 'verynormal': !bucket.lastPurchaseHot }">{{bucket.buyCount}}
         </td>
