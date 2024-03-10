@@ -39,16 +39,10 @@ export class AppComponent implements OnInit, AfterViewInit {
   userAccess: number = 100;
 
   init_triggmebody = {
-    currency: 'NOK',
     token: '',
-    discount_level: 2.0,
     average_purchase_count: 50,
-    innkjopspris_prosent: 50.0,
-    average_purchase: 500.0,
     min_purchase: 0.0,
     max_purchase: 999999999.0,
-    triggme_fee_prosent: 10.0,
-    humaniter_fee_prosent: 10.0,
     total_purchase: 0.0,
     trigg_purchase: [0],
     trigg_total_purchase: [0],
@@ -63,6 +57,16 @@ export class AppComponent implements OnInit, AfterViewInit {
     bucket: [''],
   };
 
+  init_edit_params = {
+    currency: 'NOK',
+    innkjopspris_prosent: 50.0,
+    discount_level: 2.0,
+    average_purchase: 500.0,
+    triggme_fee_prosent: 10.0,
+    humaniter_fee_prosent: 10.0,
+  };
+
+  edit_params =  JSON.parse(JSON.stringify(this.init_edit_params));
   triggmebody = JSON.parse(JSON.stringify(this.init_triggmebody));
 
   last_purchase = {
@@ -157,6 +161,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             parseInt(result.session_timeout) * 60 * 1000;
           this.last_purchase.token = this.token;
           this.triggmebody = JSON.parse(JSON.stringify(this.init_triggmebody));
+          this.edit_params = JSON.parse(JSON.stringify(this.init_edit_params));
           this.triggmebody.token = this.token;
           this.sessionTimeout();
           this.setUp();
@@ -200,11 +205,11 @@ export class AppComponent implements OnInit, AfterViewInit {
     let low = 0.0;
     let high = this.maxAmount;
     this.chosenBucketId = this.bucketInput[0].bucketId;
-    if (this.triggmebody.average_purchase >= this.minimumBucketAmount) {
+    if (this.edit_params.average_purchase >= this.minimumBucketAmount) {
       buck = this.bucketInput.filter(
         (bucket: any) =>
-          this.triggmebody.average_purchase >= bucket.purchaseLimitLow &&
-          this.triggmebody.average_purchase <= bucket.purchaseLimitHigh
+          this.edit_params.average_purchase >= bucket.purchaseLimitLow &&
+          this.edit_params.average_purchase <= bucket.purchaseLimitHigh
       );
       low = buck[0].purchaseLimitLow;
       high = buck[0].purchaseLimitHigh;
@@ -217,7 +222,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         setTimeout(() => {
           const ra = Math.random();
           const p = Math.floor(100 * ((high - low) * ra + low)) / 100;
-          this.teller++;
           this.buySomething(p);
         }, 7 * i)
       );
@@ -242,7 +246,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   };
 
   moneyFormatter = (params: ValueFormatterParams) => {
-    return this.triggmebody.currency + ' ' + params.value.toFixed(2);
+    return this.edit_params.currency + ' ' + params.value.toFixed(2);
   };
 
   colDefs: ColDef[] = [
@@ -275,8 +279,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     let lp = {
       lastPurchase: p,
       token: this.token,
-      discountLevel: this.triggmebody.discount_level,
-      innkjopsProsent: this.triggmebody.innkjopspris_prosent,
+      ...this.edit_params,
       randurl: randurl,
     };
 
@@ -296,7 +299,6 @@ export class AppComponent implements OnInit, AfterViewInit {
           return;
         }
 
-        //this.rowData.unshift(result.purchaseLog);
        const rElem = this.rowDataList.find((rd) => rd.bucketId===result.bucketId);
         if (!rElem) {
           this.rowDataList.push({bucketId:result.bucketId,rowData:[result.purchaseLog]});
@@ -306,6 +308,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         }
         
         this.rowData = this.rowDataList.find((e)=> e.bucketId===this.chosenBucketId)?.rowData;
+        
         this.grid.api.setGridOption('rowData', this.rowData);
 
         if (result.lastAllowanceSlip) {
@@ -381,6 +384,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             }
           }
         });
+        this.teller++;
       });
   }
 
@@ -390,10 +394,13 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.purchaseTimeoutHandle = [];
     this.initTriggmebody();
     this.rowData = [];
+    const post_body = {...this.triggmebody, ...this.edit_params};
+    //console.log(this.triggmebody, post_body);
+    
     this.http
       .post(
         this.host + this.webApp + '/demo/setup' + this.getRandomUrl(),
-        this.triggmebody,
+        post_body,
         {
           headers: this.httpHeaders,
           responseType: 'json',
@@ -407,6 +414,8 @@ export class AppComponent implements OnInit, AfterViewInit {
           this.token = null;
           return;
         }
+        console.log(result);
+        
         this.bucketInput = result['buckets'];
         this.triggmebody.average_purchase_count = result.averagePurchaseCount;
 
