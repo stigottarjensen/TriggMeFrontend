@@ -13,6 +13,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 // import 'ag-grid-community/styles/ag-theme-quartz.css';
 import * as forge from 'node-forge';
 import { AnyCatcher } from 'rxjs/internal/AnyCatcher';
+import { formatNumber } from '@angular/common';
 // ng build --base-href=/triggdemo/
 //sudo /Users/stigottarjensen/apache-tomcat-10.1.16/bin/startup.sh
 //sudo /Users/stigottarjensen/apache-tomcat-10.1.16/bin/shutdown.sh
@@ -246,9 +247,10 @@ export class AppComponent implements OnInit, AfterViewInit {
   };
 
   moneyFormatter = (params: ValueFormatterParams) => {
-    return this.edit_params.currency + ' ' + params.value.toFixed(2);
+    return this.edit_params.currency + ' ' + formatNumber(params.value,'en-US','1.2-2');
   };
 
+  
   colDefs: ColDef[] = [
     { field: 'timeStamp', valueFormatter: this.formatTimestamp },
     { field: 'amount', valueFormatter: this.moneyFormatter },

@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { NgModule ,LOCALE_ID } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http'
 import { AppComponent } from './app.component';
@@ -21,7 +21,7 @@ import { AgGridAngular } from 'ag-grid-angular';
     BrowserAnimationsModule,
     AgGridAngular
   ],
-  providers: [],
+  providers: [ ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
