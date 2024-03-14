@@ -1,4 +1,4 @@
-<h2>Test av TriggMe i deres Butikk/Tjenesteyting</h2>
+<h2 (click)="clickNano('nanoStamp')">Test av TriggMe i deres Butikk/Tjenesteyting</h2>
 <div *ngIf="!token">
   <p>User: <input type="text" [(ngModel)]="username"></p>
   <p>Pass: <input type="password" [(ngModel)]="password" (keyup.enter)="login()"></p>

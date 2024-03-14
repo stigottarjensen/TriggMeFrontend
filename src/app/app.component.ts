@@ -7,6 +7,7 @@ import {
   SizeColumnsToFitGridStrategy,
   SizeColumnsToFitProvidedWidthStrategy,
   ValueFormatterParams,
+  ValueGetterParams,
 } from 'ag-grid-community';
 import { DomSanitizer } from '@angular/platform-browser';
 // import 'ag-grid-community/styles/ag-grid.css';
@@ -67,7 +68,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     humaniter_fee_prosent: 10.0,
   };
 
-  edit_params =  JSON.parse(JSON.stringify(this.init_edit_params));
+  edit_params = JSON.parse(JSON.stringify(this.init_edit_params));
   triggmebody = JSON.parse(JSON.stringify(this.init_triggmebody));
 
   last_purchase = {
@@ -102,7 +103,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   };
 
   error = '';
-  constructor(private http: HttpClient, private sanitizer: DomSanitizer) {}
+  constructor(private http: HttpClient, private sanitizer: DomSanitizer) { }
 
   timeOutHandle: any;
 
@@ -190,17 +191,20 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.count_percent = 0;
   }
 
-  chosenBucketId:any;
+  chosenBucketId: any;
 
-  chooseBucketId(newId:string) {
+  chooseBucketId(newId: string) {
     this.chosenBucketId = newId;
-    this.rowData = this.rowDataList.find((e)=> e.bucketId===this.chosenBucketId)?.rowData;
+    this.rowData = this.rowDataList.find(
+      (e) => e.bucketId === this.chosenBucketId
+    )?.rowData;
     this.grid.api.setGridOption('rowData', this.rowData);
   }
 
   simulatePurchase(): void {
     this.initTriggmebody();
     this.rowData = [];
+    this.rowDataList = [];
     this.grid.api.setGridOption('rowData', []);
     let buck = [];
     let low = 0.0;
@@ -247,19 +251,69 @@ export class AppComponent implements OnInit, AfterViewInit {
   };
 
   moneyFormatter = (params: ValueFormatterParams) => {
-    return this.edit_params.currency + ' ' + formatNumber(params.value,'en-US','1.2-2');
+    return (
+      this.edit_params.currency +
+      ' ' +
+      formatNumber(params.value, 'en-US', '1.2-2')
+    );
   };
 
+  allowanceRenderer = (params: ValueFormatterParams) => {
+    if (params.value > 0.003)
+      return (
+        this.edit_params.currency +
+        ' ' +
+        formatNumber(params.value, 'en-US', '1.2-2')
+      );
+    else return '';
+  };
+
+  bigNformatter = (params: ValueFormatterParams) => {
+    const low = (params.value % 1000).toFixed(0);
+    const middle = ((params.value /1000) % 1000).toFixed(0);
+    const high = (params.value / 1000000).toFixed(0);
+    let l = '000'+low;
+    let m = '000'+middle;
+    let h = '000'+high;
+    return (
+      `${h.substring(h.length-3)} ${m.substring(m.length-3)} ${l.substring(l.length-3)}`
+    );
+  };  
+
+
+  showNano = true;
+
+  clickNano(colName:string) {
+     this.showNano = !this.showNano;
+     this.grid.api.setColumnsVisible([colName], this.showNano);
+  }
   
   colDefs: ColDef[] = [
     { field: 'timeStamp', valueFormatter: this.formatTimestamp },
+    { field: 'nanoStamp' ,valueFormatter: this.bigNformatter, hide: this.showNano },
     { field: 'amount', valueFormatter: this.moneyFormatter },
     { field: 'sumAmount', valueFormatter: this.moneyFormatter },
     { field: 'discountPercent' },
     { field: 'discountAmount', valueFormatter: this.moneyFormatter },
     { field: 'sumDiscount', valueFormatter: this.moneyFormatter },
     { field: 'limit', valueFormatter: this.moneyFormatter },
-    { field: 'trigged' },
+    {
+      headerName: 'Tilgode',
+      field:'allowanceAmount',
+      // valueGetter: (params: ValueGetterParams) => {
+      //   return params.data['allowanceAmount'];
+      // },
+      valueFormatter: this.allowanceRenderer,
+    },
+    {
+      headerName: 'SumTilgode',
+      valueGetter: (params: ValueGetterParams) => {
+        if (params.data['allowanceAmount'] > 0.03)
+          return params.data['accAllowanceAmount'];
+        else return 0.0;
+      },
+      valueFormatter: this.allowanceRenderer,
+    },
     { field: 'triggSaldo', valueFormatter: this.moneyFormatter },
     { field: 'sumTilgode', valueFormatter: this.moneyFormatter },
     { field: 'sumTriggFee', valueFormatter: this.moneyFormatter },
@@ -270,11 +324,11 @@ export class AppComponent implements OnInit, AfterViewInit {
     | SizeColumnsToFitGridStrategy
     | SizeColumnsToFitProvidedWidthStrategy
     | SizeColumnsToContentStrategy = {
-    type: 'fitCellContents',
-  };
+      type: 'fitCellContents',
+    };
 
-  rowData: any[]|undefined = [];
-  rowDataList:{bucketId:string, rowData:any[]}[] =[];
+  rowData: any[] | undefined = [];
+  rowDataList: { bucketId: string; rowData: any[] }[] = [];
 
   buySomething(p: number): void {
     const randurl = this.getRandomUrl();
@@ -286,6 +340,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     };
 
     this.last_purchase = lp;
+    console.log(p, randurl);
+    
     this.http
       .post(this.host + this.webApp + '/demo/buy' + randurl, lp, {
         headers: this.httpHeaders,
@@ -300,17 +356,25 @@ export class AppComponent implements OnInit, AfterViewInit {
           this.token = null;
           return;
         }
+        console.log(result.purchaseLog);
 
-       const rElem = this.rowDataList.find((rd) => rd.bucketId===result.bucketId);
+        const rElem = this.rowDataList.find(
+          (rd) => rd.bucketId === result.bucketId
+        );
         if (!rElem) {
-          this.rowDataList.push({bucketId:result.bucketId,rowData:[result.purchaseLog]});
+          this.rowDataList.push({
+            bucketId: result.bucketId,
+            rowData: [result.purchaseLog],
+          });
         } else {
           const i = this.rowDataList.indexOf(rElem);
           this.rowDataList[i].rowData.unshift(result.purchaseLog);
         }
-        
-        this.rowData = this.rowDataList.find((e)=> e.bucketId===this.chosenBucketId)?.rowData;
-        
+
+        this.rowData = this.rowDataList.find(
+          (e) => e.bucketId === this.chosenBucketId
+        )?.rowData;
+
         this.grid.api.setGridOption('rowData', this.rowData);
 
         if (result.lastAllowanceSlip) {
@@ -396,9 +460,10 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.purchaseTimeoutHandle = [];
     this.initTriggmebody();
     this.rowData = [];
-    const post_body = {...this.triggmebody, ...this.edit_params};
+    this.rowDataList = [];
+    const post_body = { ...this.triggmebody, ...this.edit_params };
     //console.log(this.triggmebody, post_body);
-    
+
     this.http
       .post(
         this.host + this.webApp + '/demo/setup' + this.getRandomUrl(),
@@ -417,7 +482,7 @@ export class AppComponent implements OnInit, AfterViewInit {
           return;
         }
         console.log(result);
-        
+
         this.bucketInput = result['buckets'];
         this.triggmebody.average_purchase_count = result.averagePurchaseCount;
 
