@@ -221,14 +221,15 @@ export class AppComponent implements OnInit, AfterViewInit {
       this.chosenBucketId = buck[0].bucketId;
     }
     this.setUp();
-
+    let tt=0;
     for (let i = 0; i < this.simulate_count; i++) {
+
       this.purchaseTimeoutHandle.push(
         setTimeout(() => {
           const ra = Math.random();
           const p = Math.floor(100 * ((high - low) * ra + low)) / 100;
           this.buySomething(p);
-        }, 7 * i)
+        }, 3 * i)
       );
     }
   }
@@ -300,9 +301,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     {
       headerName: 'Tilgode',
       field:'allowanceAmount',
-      // valueGetter: (params: ValueGetterParams) => {
-      //   return params.data['allowanceAmount'];
-      // },
       valueFormatter: this.allowanceRenderer,
     },
     {
@@ -340,7 +338,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     };
 
     this.last_purchase = lp;
-    console.log(p, randurl);
     
     this.http
       .post(this.host + this.webApp + '/demo/buy' + randurl, lp, {
@@ -356,7 +353,6 @@ export class AppComponent implements OnInit, AfterViewInit {
           this.token = null;
           return;
         }
-        console.log(result.purchaseLog);
 
         const rElem = this.rowDataList.find(
           (rd) => rd.bucketId === result.bucketId
@@ -451,6 +447,7 @@ export class AppComponent implements OnInit, AfterViewInit {
           }
         });
         this.teller++;
+        
       });
   }
 
@@ -462,7 +459,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.rowData = [];
     this.rowDataList = [];
     const post_body = { ...this.triggmebody, ...this.edit_params };
-    //console.log(this.triggmebody, post_body);
 
     this.http
       .post(
@@ -481,7 +477,6 @@ export class AppComponent implements OnInit, AfterViewInit {
           this.token = null;
           return;
         }
-        console.log(result);
 
         this.bucketInput = result['buckets'];
         this.triggmebody.average_purchase_count = result.averagePurchaseCount;
