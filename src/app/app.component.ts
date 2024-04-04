@@ -201,6 +201,13 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.grid.api.setGridOption('rowData', this.rowData);
   }
 
+  randomPurchase():number {
+    const r = Math.floor(Math.random()*this.bucketInput.length);
+    const b = this.bucketInput[r];
+    const p = b.purchaseLimitLow + Math.random()*(b.purchaseLimitHigh-b.purchaseLimitLow);
+    return p;
+  }
+
   simulatePurchase(): void {
     this.initTriggmebody();
     this.rowData = [];
@@ -226,8 +233,9 @@ export class AppComponent implements OnInit, AfterViewInit {
 
       this.purchaseTimeoutHandle.push(
         setTimeout(() => {
-          const ra = Math.random();
-          const p = Math.floor(100 * ((high - low) * ra + low)) / 100;
+         // const ra = Math.random();
+         // const p = Math.floor(100 * ((high - low) * ra + low)) / 100;
+         const p = this.randomPurchase();
           this.buySomething(p);
         }, 3 * i)
       );
